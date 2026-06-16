@@ -712,23 +712,26 @@ async function exportCardImage(format) {
             sigBox.innerHTML = `<img src="${state.signature}" style="width:100%;height:100%;object-fit:contain;display:block">`;
           }
         }
-        // Ensure brand logo image is a data URL (html2canvas needs same-origin
-        // or CORS-friendly images, and the cloned DOM doesn't always inherit
-        // the cached load state from the source page)
+        // Ensure brand logo image is a data URL in the cloned DOM.
+        // The source page may have a cached loaded <img>, but the clone
+        // doesn't carry that state — html2canvas then renders the clone
+        // before the image loads, producing a blank spot. Drawing the
+        // source image onto a canvas and re-exporting as PNG forces the
+        // raster data to be embedded synchronously in the clone.
         const brandImg = doc.querySelector('.passport__brand-img');
-        if (brandImg && brandImg.src && !brandImg.src.startsWith('data:')) {
+        const srcImg = document.querySelector('.passport__brand-img');
+        if (brandImg && srcImg && srcImg.complete && srcImg.naturalWidth > 0) {
           try {
-            const srcImg = document.querySelector('.passport__brand-img');
-            if (srcImg && srcImg.complete && srcImg.naturalWidth > 0) {
-              const c = document.createElement('canvas');
-              c.width  = srcImg.naturalWidth;
-              c.height = srcImg.naturalHeight;
-              const ctx = c.getContext('2d');
-              ctx.drawImage(srcImg, 0, 0);
-              brandImg.src = c.toDataURL('image/png');
-            }
+            const c = document.createElement('canvas');
+            c.width  = srcImg.naturalWidth;
+            c.height = srcImg.naturalHeight;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(srcImg, 0, 0);
+            brandImg.src = c.toDataURL('image/png');
           } catch (e) {
-            // leave the relative src — html2canvas will still try to load
+            // canvas tainted by cross-origin — fall back to setting the
+            // same src as the original (let html2canvas try to load it)
+            brandImg.src = srcImg.src;
           }
         }
       },
@@ -843,10 +846,38 @@ function toast(msg, kind) {
 // BOOT
 // ============================================================
 function boot() {
+  // Pre-load brand logo as data URL so html2canvas can capture it
+  // without depending on cross-origin/cached-load state.
+  preloadBrandLogo();
   initConnectView();
   initEditIdentity();
   initReset();
   determineInitialView();
+}
+
+async function preloadBrandLogo() {
+  const img = document.querySelector('.passport__brand-img');
+  if (!img) return;
+  // Wait for the natural load first
+  if (!img.complete || img.naturalWidth === 0) {
+    await new Promise((resolve) => {
+      img.addEventListener('load', resolve, { once: true });
+      img.addEventListener('error', resolve, { once: true });
+      // safety timeout — don't block forever
+      setTimeout(resolve, 3000);
+    });
+  }
+  if (img.naturalWidth === 0) return;
+  try {
+    const c = document.createElement('canvas');
+    c.width  = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    img.src = c.toDataURL('image/png');
+  } catch (e) {
+    // CORS-tainted canvas — keep original src
+  }
 }
 
 if (document.readyState === 'loading') {
