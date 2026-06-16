@@ -656,9 +656,11 @@ async function exportCardImage(format) {
   toast('Rendering passport…', 'info');
   try {
     // Passport is 720x470 base, scale 3 = 2160x1410 (print-ready)
-    // We need an opaque background because the spine + frame are dark
+    // We need an opaque background because the spine + frame are dark.
+    // onclone forces solid backgrounds because html2canvas can't reliably
+    // render the parchment gradient on the right page (it ends up black).
     const canvas = await html2canvas(card, {
-      backgroundColor: '#0a0807',
+      backgroundColor: '#d4c29a',
       scale: 3,
       useCORS: true,
       allowTaint: true,
@@ -666,6 +668,25 @@ async function exportCardImage(format) {
       height: 470,
       windowWidth: 720,
       windowHeight: 470,
+      onclone: (doc) => {
+        // Force solid parchment on both pages — html2canvas loses the gradient
+        // and renders the right page as transparent → black background bleed
+        const left = doc.querySelector('.passport__page--left');
+        const right = doc.querySelector('.passport__page--right');
+        const parchment = '#d4c29a';
+        if (left)  left.style.cssText  += `;background:${parchment} !important;`;
+        if (right) right.style.cssText += `;background:${parchment} !important;`;
+        // Force frame to a flat dark color (avoids gradient edge artifacts)
+        const frame = doc.querySelector('.passport__frame');
+        if (frame) frame.style.cssText += `;background:#1a1612 !important;`;
+        // Re-render signature into card if user drew one
+        if (state.signature) {
+          const sigBox = doc.getElementById('cardSig');
+          if (sigBox) {
+            sigBox.innerHTML = `<img src="${state.signature}" style="width:100%;height:100%;object-fit:contain;display:block">`;
+          }
+        }
+      },
     });
     if (format === 'png') {
       const link = document.createElement('a');
