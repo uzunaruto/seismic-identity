@@ -1,0 +1,18 @@
+{
+  "_comment": "Verified Seismic community members. Edit via PR or admin UI. Format: Discord user snowflake ID -> { role, joinedAt, tier, note }",
+  "_version": 2,
+  "members": {
+    "1076700962368012358": {
+      "role": "Magnitude 7",
+      "joinedAt": "2024-08-15",
+      "tier": "verified",
+      "note": "Archanist — @archanist.eth. Add more verified IDs as you whitelist members."
+    }
+  },
+  "tiers": {
+    "verified": "Discord-verified Seismic community member",
+    "self": "Self-attested (not in registry)",
+    "unknown": "Not in Seismic guild"
+  },
+  "fallback_role": "Seismic Member"
+}

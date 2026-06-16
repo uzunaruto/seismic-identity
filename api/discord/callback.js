@@ -4,15 +4,24 @@
 //  2. Exchanges code for access token
 //  3. Fetches user info + guilds
 //  4. Checks if user is in the Seismic guild
-//  5. Looks up known role mapping
+//  5. Looks up role from members.json registry
 //  6. Redirects to /#discord=<base64-encoded JSON>
 
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
 const SEISMIC_GUILD_ID = '1343751435711414362';
-// Edit this map (Discord user ID -> role label) to whitelist specific roles.
-// Format: 'DISCORD_USER_SNOWFLAKE_ID': 'Magnitude'
-const KNOWN_ROLES = {
-  // Example: '853265485178957834': 'Magnitude',
-};
+
+// Load members registry (compiled at build time by Vercel)
+let MEMBERS = {};
+try {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const raw = await readFile(join(here, '..', 'data', 'members.json'), 'utf8');
+  MEMBERS = JSON.parse(raw).members || {};
+} catch (e) {
+  console.warn('members.json not loaded, falling back to default:', e.message);
+}
 
 function parseCookies(header) {
   const out = {};
@@ -22,6 +31,16 @@ function parseCookies(header) {
     if (k) out[k] = decodeURIComponent(v.join('='));
   }
   return out;
+}
+
+function discordAvatarUrl(user) {
+  if (user.avatar) {
+    const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=256`;
+  }
+  // Default avatar: 0-5 based on (id >> 22) % 6
+  const idx = Number(BigInt(user.id) >> 22n) % 6;
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
 }
 
 export default async function handler(req, res) {
@@ -85,16 +104,24 @@ export default async function handler(req, res) {
     const guilds = guildsRes.ok ? await guildsRes.json() : [];
     const inSeismicGuild = Array.isArray(guilds) && guilds.some(g => g.id === SEISMIC_GUILD_ID);
 
-    // 4. Look up role
-    const role = KNOWN_ROLES[user.id] || 'Seismic Member';
+    // 4. Look up role in members registry
+    const member = MEMBERS[user.id];
+    const verified = !!member && inSeismicGuild;
+    const role = verified ? member.role : (inSeismicGuild ? 'Seismic Member' : null);
+    const tier = verified ? member.tier || 'verified' : (inSeismicGuild ? 'self' : 'unknown');
 
-    // 5. Encode and redirect
+    // 5. Build avatar URL
+    const avatarUrl = discordAvatarUrl(user);
+
+    // 6. Encode and redirect
     const payload = {
       id: user.id,
       username: user.username,
-      global_name: user.global_name,
+      global_name: user.global_name || user.username,
+      avatar: avatarUrl,
       inSeismicGuild,
-      role: inSeismicGuild ? role : null,
+      role,
+      tier,
     };
     const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
 

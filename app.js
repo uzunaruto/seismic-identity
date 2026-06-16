@@ -1,8 +1,8 @@
 /* ============================================================
-   Seismic ID v2 — Frontend logic
-   - State: localStorage (key: seismicIdProfile)
-   - OAuth: Discord + X via Vercel serverless callbacks
-   - Card: live preview, theme/finish, signature
+   Seismic ID v3 — Frontend logic
+   - State: localStorage (key: seismicIdProfile.v3)
+   - OAuth: Discord via Vercel serverless callback
+   - Card: live preview, 162 variants, magnitude color-coded
    - Export: PNG (html2canvas), PDF (jsPDF), X share (intent)
    ============================================================ */
 
@@ -12,26 +12,13 @@
 // CONFIG
 // ============================================================
 const CONFIG = {
-  // Discord guild to verify membership against
+  STORAGE_KEY: 'seismicIdProfile.v3',
+  VERIFY_BASE: 'https://seismic-identity.vercel.app/verify/',
   SEISMIC_GUILD_ID: '1343751435711414362',
 
-  // Known Discord ID -> role mapping (edit to add verified members)
-  // Roles are case-insensitive strings shown on the badge.
-  KNOWN_ROLES: {
-    // '123456789012345678': 'Founder',
-    // Archanist: add your Discord ID here once you fetch it from a successful OAuth
-  },
-
-  // Verification URL encoded into QR
-  VERIFY_BASE: 'https://seismic-identity.vercel.app/verify/',
-
-  // Storage key
-  STORAGE_KEY: 'seismicIdProfile.v2',
-
-  // Share text template
   SHARE_TEXT: (name, handle, role) => {
-    const r = role && role !== 'Seismic Member' ? ` · ${role}` : '';
-    return `Just minted my Seismic Community ID. ${name} (@${handle})${r} · verified by Discord · built on @SeismicSys. #SeismicID`;
+    const r = role ? ` · ${role}` : '';
+    return `Just minted my Seismic Community ID. ${name}${handle ? ` (@${handle})` : ''}${r} · Discord-verified, no wallet needed. #SeismicID`;
   },
 };
 
@@ -39,17 +26,20 @@ const CONFIG = {
 // STATE
 // ============================================================
 const defaultState = {
-  x: null,        // { source: 'oauth' | 'manual', name, handle, pfp }
-  discord: null,  // { id, username, inSeismicGuild, role }
-  signature: null,// dataURL
+  identity: null,    // { source: 'discord' | 'manual', id, name, handle, pfp, role, magnitude, tier }
+  signature: null,   // dataURL
   seismicId: null,
-  theme: 'obsidian',
-  finish: 'matte',
-  issued: null,   // ISO date
+  issued: null,
+  ratio: 'portrait', // portrait | landscape | square
+  theme: 'obsidian', // obsidian | copper | fossil
+  finish: 'matte',   // matte | holographic
+  avatar: 'circle',  // circle | squircle | hex
+  border: 'minimal', // minimal | glow | stamp
+  customTitle: '',   // overrides role label
 };
 
 let state = loadState();
-let qrInstance = null; // QRCode instance
+let qrInstance = null;
 
 // ============================================================
 // STORAGE
@@ -65,7 +55,6 @@ function loadState() {
     return { ...defaultState };
   }
 }
-
 function saveState() {
   try {
     localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state));
@@ -73,8 +62,7 @@ function saveState() {
     console.warn('Failed to save state:', e);
   }
 }
-
-function clearState() {
+function clearAllState() {
   localStorage.removeItem(CONFIG.STORAGE_KEY);
   state = { ...defaultState };
 }
@@ -88,13 +76,38 @@ function generateSeismicId() {
 }
 
 // ============================================================
+// MAGNITUDE DETECTION
+// ============================================================
+function detectMagnitude(role) {
+  if (!role) return null;
+  const m = role.match(/^Magnitude\s+(\d+)/i);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 1 && n <= 9) return n;
+  }
+  return null;
+}
+
+function detectRoleKind(role) {
+  if (!role) return 'member';
+  if (detectMagnitude(role) !== null) return 'magnified';
+  if (/core\s*team/i.test(role)) return 'core';
+  if (/^og$/i.test(role)) return 'og';
+  if (/contributor/i.test(role)) return 'contributor';
+  return 'member';
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// ============================================================
 // VIEW ROUTING
 // ============================================================
 function showView(name) {
   const connect = document.getElementById('view-connect');
   const builder = document.getElementById('view-builder');
   const resetBtn = document.getElementById('resetBtn');
-
   if (name === 'builder') {
     connect.hidden = true;
     builder.hidden = false;
@@ -109,62 +122,43 @@ function showView(name) {
 }
 
 function determineInitialView() {
-  // After OAuth callback, data is in hash
   const hash = window.location.hash;
-  if (hash.startsWith('#discord=') || hash.startsWith('#x=')) {
-    handleOAuthCallback();
+  if (hash.startsWith('#discord=')) {
+    handleDiscordCallback();
   }
-
-  // If we have either x or discord data, go to builder
-  if (state.x || state.discord) {
+  if (state.identity) {
     showView('builder');
   } else {
     showView('connect');
   }
 }
 
-// ============================================================
-// OAUTH CALLBACK HANDLING
-// ============================================================
-function handleOAuthCallback() {
+function handleDiscordCallback() {
   const hash = window.location.hash.replace(/^#/, '');
   const params = new URLSearchParams(hash);
-  const provider = params.has('discord') ? 'discord' : params.has('x') ? 'x' : null;
-  if (!provider) return;
-
   try {
-    const encoded = params.get(provider);
+    const encoded = params.get('discord');
     const data = JSON.parse(atob(decodeURIComponent(encoded)));
-
-    if (provider === 'discord') {
-      state.discord = {
-        id: data.id,
-        username: data.username,
-        global_name: data.global_name,
-        inSeismicGuild: !!data.inSeismicGuild,
-        role: data.role || 'Seismic Member',
-      };
-      toast('Discord connected', 'ok');
-    } else if (provider === 'x') {
-      state.x = {
-        source: 'oauth',
-        name: data.name,
-        handle: data.username,
-        pfp: data.profile_image_url,
-      };
-      toast('X connected', 'ok');
-    }
-
+    state.identity = {
+      source: 'discord',
+      id: data.id,
+      name: data.global_name || data.username,
+      handle: '', // not collected from Discord
+      pfp: data.avatar,
+      role: data.role || null,
+      magnitude: detectMagnitude(data.role),
+      tier: data.tier || 'unknown',
+      inGuild: !!data.inSeismicGuild,
+    };
     if (!state.seismicId) {
       state.seismicId = generateSeismicId();
       state.issued = new Date().toISOString();
     }
-
     saveState();
-    // Clean URL
     history.replaceState(null, '', window.location.pathname);
+    toast(`Discord connected · ${data.role || 'member'}`, 'ok');
   } catch (e) {
-    console.error('OAuth callback parse failed:', e);
+    console.error('Discord callback parse failed:', e);
     toast('Connection failed. Try again.', 'err');
   }
 }
@@ -173,83 +167,44 @@ function handleOAuthCallback() {
 // CONNECT VIEW
 // ============================================================
 function initConnectView() {
-  // Manual form
   const form = document.getElementById('manualForm');
-  const pfpPreview = document.getElementById('mPfpPreview');
-  const pfpUrlInput = document.getElementById('mPfpUrl');
-  const pfpFileInput = document.getElementById('mPfpFile');
-  const pfpUploadBtn = document.getElementById('mPfpUpload');
-
-  // X "Coming soon" button — intercept click, open manual form
-  const xBtn = document.getElementById('xBtn');
-  if (xBtn && xBtn.dataset.comingSoon === 'true') {
-    xBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toast('X OAuth coming soon — fill the manual form below', 'info');
-      const details = document.querySelector('.connect__manual details');
-      if (details) details.open = true;
-      const manualForm = document.getElementById('manualForm');
-      if (manualForm) manualForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }
-
-  let manualPfp = null;
-
-  pfpUploadBtn.addEventListener('click', () => pfpFileInput.click());
-
-  pfpFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast('Image too large (max 2MB)', 'err');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      manualPfp = ev.target.result;
-      pfpPreview.style.backgroundImage = `url(${manualPfp})`;
-      pfpUrlInput.value = '';
-    };
-    reader.readAsDataURL(file);
-  });
-
-  pfpUrlInput.addEventListener('input', (e) => {
-    const url = e.target.value.trim();
-    if (url) {
-      manualPfp = url;
-      pfpPreview.style.backgroundImage = `url(${url})`;
-    } else {
-      manualPfp = null;
-      pfpPreview.style.backgroundImage = '';
-    }
-  });
+  if (!form) return;
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('mName').value.trim();
+    const pfp = document.getElementById('mPfp').value.trim();
     const handle = document.getElementById('mHandle').value.trim().replace(/^@/, '');
+    const role = document.getElementById('mRole').value.trim();
 
-    if (!name || !handle) {
-      toast('Name and handle are required', 'err');
+    if (!name) {
+      toast('Display name is required', 'err');
       return;
     }
-    if (!/^[A-Za-z0-9_]{1,32}$/.test(handle)) {
+    if (handle && !/^[A-Za-z0-9_]{1,32}$/.test(handle)) {
       toast('Invalid X handle format', 'err');
       return;
     }
+    if (pfp && !/^https?:\/\//i.test(pfp)) {
+      toast('PFP URL must start with http(s)://', 'err');
+      return;
+    }
 
-    state.x = {
+    state.identity = {
       source: 'manual',
+      id: null,
       name,
       handle,
-      pfp: manualPfp || null,
+      pfp: pfp || null,
+      role: role || null,
+      magnitude: detectMagnitude(role),
+      tier: 'self',
+      inGuild: false,
     };
-
     if (!state.seismicId) {
       state.seismicId = generateSeismicId();
       state.issued = new Date().toISOString();
     }
-
     saveState();
     showView('builder');
   });
@@ -259,144 +214,195 @@ function initConnectView() {
 // BUILDER VIEW
 // ============================================================
 function renderBuilder() {
-  renderXStatus();
-  renderDiscordStatus();
-  renderSignature();
-  renderCardOptions();
+  renderIdentityCard();
+  renderSegGroups();
+  renderCustomTitle();
   renderCard();
   renderExport();
+  initSignaturePad();
 }
 
-function renderXStatus() {
-  const el = document.getElementById('xStatus');
-  const editBtn = document.getElementById('xEditBtn');
-  const reconnectBtn = document.getElementById('xReconnectBtn');
+function renderIdentityCard() {
+  const id = state.identity;
+  const pfp = document.getElementById('idPfp');
+  const name = document.getElementById('idName');
+  const handle = document.getElementById('idHandle');
+  const roleEl = document.getElementById('idRole');
+  const roleText = document.getElementById('idRoleText');
 
-  if (!state.x) {
-    el.className = 'status status--warn';
-    el.innerHTML = `
-      <i class="ph ph-warning" aria-hidden="true"></i>
-      <div class="status__body">
-        <div class="status__line1">Not connected</div>
-        <div class="status__line2">Connect X or fill manually to add identity.</div>
-      </div>
-    `;
-    editBtn.hidden = true;
-    reconnectBtn.hidden = false;
-    reconnectBtn.onclick = () => window.location.href = '/api/x/auth';
+  if (!id) {
+    name.textContent = '— no identity —';
+    handle.textContent = 'Connect Discord or fill the manual form';
+    pfp.style.backgroundImage = '';
+    roleEl.hidden = true;
     return;
   }
+  name.textContent = id.name || '—';
+  handle.textContent = id.handle ? `@${id.handle}` : (id.source === 'discord' ? `discord · ${id.id?.slice(-4) || '?'}` : 'self-submitted');
+  pfp.style.backgroundImage = id.pfp ? `url('${id.pfp}')` : '';
+  if (id.role) {
+    roleEl.hidden = false;
+    roleText.textContent = id.role;
+    roleEl.dataset.roleKind = detectRoleKind(id.role);
+    roleEl.dataset.magnitude = id.magnitude || '';
+  } else {
+    roleEl.hidden = true;
+  }
+}
 
-  const isOauth = state.x.source === 'oauth';
-  el.className = 'status status--ok';
-  el.innerHTML = `
-    <div class="status__pfp" style="${state.x.pfp ? `background-image:url('${state.x.pfp}')` : ''}"></div>
-    <div class="status__body">
-      <div class="status__line1"><strong>${escapeHtml(state.x.name)}</strong> <span>· @${escapeHtml(state.x.handle)}</span></div>
-      <div class="status__line2">${isOauth ? 'Verified via X OAuth' : 'Self-Submitted Profile'}</div>
-    </div>
-  `;
-  editBtn.hidden = isOauth; // manual profiles can be edited
-  editBtn.onclick = () => {
-    if (confirm('Clear X profile and return to manual entry?')) {
-      state.x = null;
-      saveState();
-      showView('connect');
-    }
+function renderSegGroups() {
+  // ratioSeg
+  const ratioSeg = document.getElementById('ratioSeg');
+  if (ratioSeg) {
+    ratioSeg.querySelectorAll('.seg__opt').forEach(btn => {
+      const active = btn.dataset.ratio === state.ratio;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active);
+      btn.onclick = () => {
+        state.ratio = btn.dataset.ratio;
+        saveState();
+        renderSegGroups();
+        renderCard();
+      };
+    });
+  }
+  // themeSeg
+  const themeSeg = document.getElementById('themeSeg');
+  if (themeSeg) {
+    themeSeg.querySelectorAll('.seg__opt').forEach(btn => {
+      const active = btn.dataset.theme === state.theme;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active);
+      btn.onclick = () => {
+        state.theme = btn.dataset.theme;
+        saveState();
+        renderSegGroups();
+        renderCard();
+      };
+    });
+  }
+  // finishSeg
+  const finishSeg = document.getElementById('finishSeg');
+  if (finishSeg) {
+    finishSeg.querySelectorAll('.seg__opt').forEach(btn => {
+      const active = btn.dataset.finish === state.finish;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active);
+      btn.onclick = () => {
+        state.finish = btn.dataset.finish;
+        saveState();
+        renderSegGroups();
+        renderCard();
+      };
+    });
+  }
+  // avatarSeg
+  const avatarSeg = document.getElementById('avatarSeg');
+  if (avatarSeg) {
+    avatarSeg.querySelectorAll('.seg__opt').forEach(btn => {
+      const active = btn.dataset.avatar === state.avatar;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active);
+      btn.onclick = () => {
+        state.avatar = btn.dataset.avatar;
+        saveState();
+        renderSegGroups();
+        renderCard();
+      };
+    });
+  }
+  // borderSeg
+  const borderSeg = document.getElementById('borderSeg');
+  if (borderSeg) {
+    borderSeg.querySelectorAll('.seg__opt').forEach(btn => {
+      const active = btn.dataset.border === state.border;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active);
+      btn.onclick = () => {
+        state.border = btn.dataset.border;
+        saveState();
+        renderSegGroups();
+        renderCard();
+      };
+    });
+  }
+}
+
+function renderCustomTitle() {
+  const input = document.getElementById('customTitle');
+  if (!input) return;
+  input.value = state.customTitle || '';
+  input.oninput = () => {
+    state.customTitle = input.value;
+    saveState();
+    renderCard();
   };
-  reconnectBtn.hidden = false;
-  reconnectBtn.onclick = () => window.location.href = '/api/x/auth';
-}
-
-function renderDiscordStatus() {
-  const el = document.getElementById('discordStatus');
-  const reconnectBtn = document.getElementById('discordReconnectBtn');
-
-  if (!state.discord) {
-    el.className = 'status status--warn';
-    el.innerHTML = `
-      <i class="ph ph-warning" aria-hidden="true"></i>
-      <div class="status__body">
-        <div class="status__line1">Not verified</div>
-        <div class="status__line2">Connect Discord to verify community membership and detect role.</div>
-      </div>
-    `;
-    reconnectBtn.hidden = false;
-    reconnectBtn.onclick = () => window.location.href = '/api/discord/auth';
-    return;
-  }
-
-  const verified = state.discord.inSeismicGuild;
-  el.className = `status ${verified ? 'status--ok' : 'status--warn'}`;
-  el.innerHTML = `
-    <i class="ph-fill ph-${verified ? 'seal-check' : 'warning'}" aria-hidden="true"></i>
-    <div class="status__body">
-      <div class="status__line1"><strong>${verified ? 'Seismic member' : 'Not in Seismic guild'}</strong>${state.discord.role && state.discord.role !== 'Seismic Member' ? ` <span>· ${escapeHtml(state.discord.role)}</span>` : ''}</div>
-      <div class="status__line2">${verified ? 'Role badge attached to your card.' : 'Join the Seismic Discord to get a role badge.'}</div>
-    </div>
-  `;
-  reconnectBtn.hidden = false;
-  reconnectBtn.onclick = () => window.location.href = '/api/discord/auth';
 }
 
 // ============================================================
-// SIGNATURE CANVAS
+// SIGNATURE PAD
 // ============================================================
+let sigHasInk = false;
 function initSignaturePad() {
   const canvas = document.getElementById('sigCanvas');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const clearBtn = document.getElementById('sigClear');
   const hint = document.getElementById('sigHint');
 
-  // Set up high-DPI canvas
-  function setupCanvas() {
+  function setup() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.lineWidth = 2.5;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#1a0e02';
   }
-  setupCanvas();
-  window.addEventListener('resize', setupCanvas);
+  setup();
 
-  let isDrawing = false;
-  let lastX = 0, lastY = 0;
-  let hasInk = false;
+  // restore previous signature
+  if (state.signature) {
+    const img = new Image();
+    img.onload = () => {
+      const rect = canvas.getBoundingClientRect();
+      ctx.drawImage(img, 0, 0, rect.width, rect.height);
+      sigHasInk = true;
+      hint.textContent = 'saved';
+    };
+    img.src = state.signature;
+  }
 
-  function getPos(e) {
+  let drawing = false, lx = 0, ly = 0;
+  function pos(e) {
     const rect = canvas.getBoundingClientRect();
     const t = e.touches ? e.touches[0] : e;
     return { x: t.clientX - rect.left, y: t.clientY - rect.top };
   }
-
   function start(e) {
     e.preventDefault();
-    isDrawing = true;
-    const p = getPos(e);
-    lastX = p.x; lastY = p.y;
-    hasInk = true;
+    drawing = true;
+    const p = pos(e);
+    lx = p.x; ly = p.y;
+    sigHasInk = true;
     hint.textContent = 'signing…';
   }
-
   function move(e) {
-    if (!isDrawing) return;
+    if (!drawing) return;
     e.preventDefault();
-    const p = getPos(e);
+    const p = pos(e);
     ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
+    ctx.moveTo(lx, ly);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
-    lastX = p.x; lastY = p.y;
+    lx = p.x; ly = p.y;
   }
-
   function end() {
-    if (!isDrawing) return;
-    isDrawing = false;
-    if (hasInk) {
+    if (!drawing) return;
+    drawing = false;
+    if (sigHasInk) {
       state.signature = canvas.toDataURL('image/png');
       saveState();
       hint.textContent = 'saved';
@@ -404,111 +410,38 @@ function initSignaturePad() {
     }
   }
 
-  canvas.addEventListener('mousedown', start);
-  canvas.addEventListener('mousemove', move);
+  canvas.onmousedown = start;
+  canvas.onmousemove = move;
   window.addEventListener('mouseup', end);
-  canvas.addEventListener('touchstart', start, { passive: false });
-  canvas.addEventListener('touchmove', move, { passive: false });
-  canvas.addEventListener('touchend', end);
+  canvas.ontouchstart = start;
+  canvas.ontouchmove = move;
+  canvas.ontouchend = end;
 
-  clearBtn.addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  clearBtn.onclick = () => {
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
     state.signature = null;
-    hasInk = false;
+    sigHasInk = false;
     hint.textContent = 'Sign above';
     saveState();
     renderCardSig();
-  });
-
-  // Restore previous signature if exists
-  if (state.signature) {
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
-      hasInk = true;
-      hint.textContent = 'saved';
-    };
-    img.src = state.signature;
-  }
-}
-
-function renderSignature() {
-  // Initial render handled by initSignaturePad
-}
-
-// ============================================================
-// CARD OPTIONS
-// ============================================================
-function renderCardOptions() {
-  // Seismic ID
-  const idDisplay = document.getElementById('seismicIdDisplay');
-  const cardId = document.getElementById('cardSeismicId');
-  if (state.seismicId) {
-    idDisplay.textContent = state.seismicId;
-    cardId.textContent = state.seismicId;
-  }
-
-  // Theme
-  const themeSeg = document.getElementById('cardTheme');
-  themeSeg.querySelectorAll('.seg__opt').forEach(btn => {
-    const active = btn.dataset.theme === state.theme;
-    btn.classList.toggle('is-active', active);
-    btn.setAttribute('aria-checked', active);
-    btn.onclick = () => {
-      state.theme = btn.dataset.theme;
-      saveState();
-      renderCardOptions();
-      renderCard();
-    };
-  });
-
-  // Finish
-  const finSeg = document.getElementById('cardFin');
-  finSeg.querySelectorAll('.seg__opt').forEach(btn => {
-    const active = btn.dataset.fin === state.finish;
-    btn.classList.toggle('is-active', active);
-    btn.setAttribute('aria-checked', active);
-    btn.onclick = () => {
-      state.finish = btn.dataset.fin;
-      saveState();
-      renderCardOptions();
-      renderCard();
-    };
-  });
-
-  // Regen ID + copy + verify link
-  const copyBtn = document.getElementById('copyIdBtn');
-  if (copyBtn) {
-    copyBtn.onclick = async () => {
-      if (!state.seismicId) return;
-      try {
-        await navigator.clipboard.writeText(state.seismicId);
-        const orig = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<i class="ph ph-check" aria-hidden="true"></i>';
-        setTimeout(() => { copyBtn.innerHTML = orig; }, 1500);
-        toast('Seismic ID copied', 'ok');
-      } catch {
-        toast('Copy failed', 'err');
-      }
-    };
-  }
-
-  const verifyLink = document.getElementById('verifyLink');
-  if (verifyLink) {
-    verifyLink.href = state.seismicId
-      ? `${CONFIG.VERIFY_BASE}${state.seismicId}`
-      : '#';
-  }
-
-  document.getElementById('regenId').onclick = () => {
-    if (!confirm('Generate a new Seismic ID? Your old one will no longer be valid.')) return;
-    state.seismicId = generateSeismicId();
-    state.issued = new Date().toISOString();
-    saveState();
-    renderCardOptions();
-    renderCard();
-    toast('New Seismic ID generated', 'ok');
   };
+}
+
+function renderCardSig() {
+  const box = document.getElementById('cardSigBox');
+  if (!box) return;
+  box.innerHTML = '';
+  if (state.signature) {
+    const img = document.createElement('img');
+    img.src = state.signature;
+    img.alt = 'Signature';
+    box.appendChild(img);
+  } else {
+    const i = document.createElement('i');
+    i.className = 'ph ph-pen-nib card__sig-placeholder';
+    box.appendChild(i);
+  }
 }
 
 // ============================================================
@@ -516,286 +449,241 @@ function renderCardOptions() {
 // ============================================================
 function renderCard() {
   const card = document.getElementById('card');
+  if (!card) return;
+
+  // data attributes
   card.dataset.theme = state.theme;
-  card.dataset.fin = state.finish;
+  card.dataset.ratio = state.ratio;
+  card.dataset.finish = state.finish;
+  card.dataset.avatar = state.avatar;
+  card.dataset.border = state.border;
 
-  // PFP
-  const pfpEl = document.getElementById('cardPfp');
-  if (state.x?.pfp) {
-    pfpEl.innerHTML = `<img src="${escapeHtml(state.x.pfp)}" alt="" crossorigin="anonymous" onerror="this.parentElement.innerHTML='<i class=\\'ph ph-user\\' aria-hidden=\\'true\\'></i>'">`;
+  // identity
+  const id = state.identity;
+  const pfp = document.getElementById('cardPfp');
+  const name = document.getElementById('cardName');
+  const handle = document.getElementById('cardHandle');
+  const role = document.getElementById('cardRole');
+  const roleText = document.getElementById('cardRoleText');
+  const seismicId = document.getElementById('cardSeismicId');
+  const issued = document.getElementById('cardIssued');
+
+  if (id) {
+    name.textContent = id.name || '—';
+    handle.textContent = id.handle ? `@${id.handle}` : (id.source === 'discord' ? '@discord' : '@self');
+    handle.href = id.handle ? `https://x.com/${id.handle}` : '#';
+    if (id.pfp) {
+      pfp.style.backgroundImage = `url('${id.pfp}')`;
+      pfp.innerHTML = '';
+    } else {
+      pfp.style.backgroundImage = '';
+      pfp.innerHTML = '<i class="ph ph-user"></i>';
+    }
   } else {
-    pfpEl.innerHTML = `<i class="ph ph-user" aria-hidden="true"></i>`;
+    name.textContent = 'Display name';
+    handle.textContent = '@handle';
+    handle.href = '#';
+    pfp.style.backgroundImage = '';
+    pfp.innerHTML = '<i class="ph ph-user"></i>';
   }
 
-  // Name + handle
-  document.getElementById('cardName').textContent = state.x?.name || 'Display name';
-  const handleEl = document.getElementById('cardHandle');
-  if (state.x) {
-    handleEl.textContent = `@${state.x.handle}`;
-    handleEl.href = `https://x.com/${encodeURIComponent(state.x.handle)}`;
+  // role badge
+  const displayLabel = state.customTitle || (id && id.role) || 'Seismic Member';
+  const mag = state.customTitle ? null : (id && id.magnitude);
+  roleText.textContent = displayLabel;
+  role.dataset.magnitude = mag || '';
+  role.dataset.roleKind = detectRoleKind(state.customTitle ? null : (id && id.role));
+  if (mag || id?.role || state.customTitle) {
+    role.hidden = false;
   } else {
-    handleEl.textContent = '@handle';
-    handleEl.href = '#';
+    role.hidden = true;
   }
 
-  // Verified
-  const verEl = document.getElementById('cardVerified');
-  const verLabel = document.getElementById('cardVerifiedLabel');
-  if (!state.x) {
-    verEl.dataset.state = 'unverified';
-    verLabel.textContent = 'No profile';
-  } else if (state.x.source === 'oauth') {
-    verEl.dataset.state = 'verified';
-    verLabel.textContent = 'Verified via X';
-  } else {
-    verEl.dataset.state = 'self-submitted';
-    verLabel.textContent = 'Self-submitted';
-  }
-
-  // Role
-  const roleEl = document.getElementById('cardRole');
-  if (state.discord?.inSeismicGuild) {
-    roleEl.classList.remove('card__role--none');
-    roleEl.textContent = state.discord.role || 'Seismic Member';
-  } else {
-    roleEl.classList.add('card__role--none');
-    roleEl.textContent = '—';
-  }
-
-  // Issued date
+  // meta
+  seismicId.textContent = state.seismicId || 'SEI-0000-0000-0000';
   if (state.issued) {
     const d = new Date(state.issued);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    document.getElementById('cardIssued').textContent = `${yyyy}.${mm}.${dd}`;
+    issued.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  // Signature
+  // copy label
+  const copyLabel = document.getElementById('copyIdLabel');
+  if (copyLabel) {
+    copyLabel.textContent = state.seismicId ? state.seismicId.slice(0, 8) + '…' : 'SEI-…';
+  }
+
+  // signature
   renderCardSig();
 
   // QR
   renderQR();
 }
 
-function renderCardSig() {
-  const box = document.getElementById('cardSigBox');
-  if (state.signature) {
-    box.innerHTML = `<img src="${state.signature}" alt="Signature">`;
-  } else {
-    box.innerHTML = `<i class="ph ph-pen-nib card__sig-placeholder" aria-hidden="true"></i>`;
-  }
-}
-
 function renderQR() {
-  const qrEl = document.getElementById('cardQr');
-  qrEl.innerHTML = '';
-  if (!state.seismicId) return;
-
-  // Load QR lib if not ready
-  if (typeof QRCode === 'undefined') {
-    setTimeout(renderQR, 200);
-    return;
+  const container = document.getElementById('cardQr');
+  if (!container) return;
+  container.innerHTML = '';
+  if (qrInstance) {
+    try { qrInstance.clear(); } catch {}
   }
-
-  // Use first 12 chars of ID for compact QR payload
-  const payload = `${CONFIG.VERIFY_BASE}${state.seismicId}`;
-  qrInstance = new QRCode(qrEl, {
-    text: payload,
-    width: 72,
-    height: 72,
-    colorDark: '#0a0907',
-    colorLight: '#f4ede4',
-    correctLevel: QRCode.CorrectLevel.M,
-  });
+  if (!window.QRCode) return;
+  const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : CONFIG.VERIFY_BASE;
+  try {
+    qrInstance = new QRCode(container, {
+      text: url,
+      width: 56,
+      height: 56,
+      colorDark: '#0a0907',
+      colorLight: '#f4ede4',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch (e) {
+    console.warn('QR render failed:', e);
+  }
 }
 
 // ============================================================
 // EXPORT
 // ============================================================
 function renderExport() {
-  document.getElementById('exportPng').onclick = exportPng;
-  document.getElementById('exportPdf').onclick = exportPdf;
-  document.getElementById('shareX').onclick = shareToX;
+  const exportPng = document.getElementById('exportPng');
+  const exportPdf = document.getElementById('exportPdf');
+  const shareX = document.getElementById('shareX');
+  const copyId = document.getElementById('copyIdBtn');
+  const regenId = document.getElementById('regenId');
+
+  if (exportPng) exportPng.onclick = () => exportCardImage('png');
+  if (exportPdf) exportPdf.onclick = () => exportCardImage('pdf');
+  if (shareX) shareX.onclick = shareToX;
+  if (copyId) copyId.onclick = copySeismicId;
+  if (regenId) regenId.onclick = regenerateSeismicId;
 }
 
-async function exportPng() {
+async function exportCardImage(format) {
   const card = document.getElementById('card');
-  toast('Rendering PNG…');
-
+  if (!card || !window.html2canvas) {
+    toast('Image library not loaded', 'err');
+    return;
+  }
+  toast('Rendering card…', 'info');
   try {
     const canvas = await html2canvas(card, {
       backgroundColor: null,
-      scale: 3, // high-res
-      useCORS: true,
-      logging: false,
-    });
-    const link = document.createElement('a');
-    link.download = `seismic-id-${state.seismicId || 'card'}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    toast('PNG downloaded', 'ok');
-  } catch (e) {
-    console.error('PNG export failed:', e);
-    toast('PNG export failed', 'err');
-  }
-}
-
-async function exportPdf() {
-  const card = document.getElementById('card');
-  toast('Rendering PDF…');
-
-  try {
-    const canvas = await html2canvas(card, {
-      backgroundColor: '#0a0907',
       scale: 3,
       useCORS: true,
-      logging: false,
+      allowTaint: true,
     });
-    const imgData = canvas.toDataURL('image/png');
-
-    // Card is 3:5 — letter portrait page, card centered
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-
-    // Card max dimensions
-    const cardW = 90;
-    const cardH = 150; // 3:5
-    const x = (pageW - cardW) / 2;
-    const y = (pageH - cardH) / 2 - 10;
-
-    pdf.addImage(imgData, 'PNG', x, y, cardW, cardH);
-
-    // Footer
-    pdf.setFontSize(8);
-    pdf.setTextColor(150, 130, 110);
-    pdf.text(`Seismic Community ID · ${state.seismicId || ''}`, pageW / 2, pageH - 20, { align: 'center' });
-    pdf.text(`Generated ${new Date().toISOString().split('T')[0]} · seismic-identity.vercel.app`, pageW / 2, pageH - 14, { align: 'center' });
-
-    pdf.save(`seismic-id-${state.seismicId || 'card'}.pdf`);
-    toast('PDF downloaded', 'ok');
+    if (format === 'png') {
+      const link = document.createElement('a');
+      link.download = `${state.seismicId || 'seismic-id'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast('PNG downloaded', 'ok');
+    } else if (format === 'pdf') {
+      if (!window.jspdf) { toast('PDF library not loaded', 'err'); return; }
+      const { jsPDF } = window.jspdf;
+      const orientation = state.ratio === 'landscape' ? 'l' : 'p';
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+        hotfixes: ['px_scaling'],
+      });
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`${state.seismicId || 'seismic-id'}.pdf`);
+      toast('PDF downloaded', 'ok');
+    }
   } catch (e) {
-    console.error('PDF export failed:', e);
-    toast('PDF export failed', 'err');
+    console.error('Export failed:', e);
+    toast('Export failed', 'err');
   }
 }
 
 function shareToX() {
-  const name = state.x?.name || 'Seismic member';
-  const handle = state.x?.handle || 'anonymous';
-  const role = state.discord?.inSeismicGuild ? (state.discord.role || 'Seismic Member') : null;
-  const text = CONFIG.SHARE_TEXT(name, handle, role);
-  const url = window.location.origin;
-  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  window.open(intentUrl, '_blank', 'noopener,noreferrer');
+  if (!state.identity) {
+    toast('Build your card first', 'err');
+    return;
+  }
+  const text = CONFIG.SHARE_TEXT(state.identity.name, state.identity.handle, state.customTitle || state.identity.role);
+  const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
+  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  window.open(intent, '_blank', 'noopener');
+}
+
+async function copySeismicId() {
+  if (!state.seismicId) return;
+  try {
+    await navigator.clipboard.writeText(state.seismicId);
+    toast('Seismic ID copied', 'ok');
+  } catch {
+    toast('Copy failed', 'err');
+  }
+}
+
+function regenerateSeismicId() {
+  state.seismicId = generateSeismicId();
+  state.issued = new Date().toISOString();
+  saveState();
+  renderCard();
+  toast('New Seismic ID minted', 'ok');
 }
 
 // ============================================================
-// VERIFY DIALOG
+// EDIT IDENTITY
 // ============================================================
-function initVerifyDialog() {
-  const dialog = document.getElementById('verifyDialog');
-  const openLinks = document.querySelectorAll('a[href="#verify"]');
-  const closeBtns = document.querySelectorAll('[data-close-dialog]');
-  const checkBtn = document.getElementById('verifyCheck');
-  const input = document.getElementById('verifyInput');
-  const result = document.getElementById('verifyResult');
-
-  openLinks.forEach(l => l.addEventListener('click', (e) => {
-    e.preventDefault();
-    dialog.showModal();
-    input.focus();
-  }));
-  closeBtns.forEach(b => b.addEventListener('click', () => dialog.close()));
-
-  checkBtn.addEventListener('click', () => {
-    const id = input.value.trim().toUpperCase();
-    if (!id) {
-      result.hidden = false;
-      result.className = 'verify-result verify-result--err';
-      result.textContent = 'Enter a Seismic ID.';
-      return;
+function initEditIdentity() {
+  const btn = document.getElementById('editIdentityBtn');
+  if (!btn) return;
+  btn.onclick = () => {
+    if (confirm('Clear identity and return to connect screen?')) {
+      state.identity = null;
+      saveState();
+      showView('connect');
     }
-    if (id === (state.seismicId || '').toUpperCase()) {
-      result.hidden = false;
-      result.className = 'verify-result verify-result--ok';
-      result.innerHTML = `<strong>Verified.</strong> This browser issued ${escapeHtml(id)}. Cross-browser verification requires a backend, which this MVP intentionally skips for privacy.`;
-    } else {
-      result.hidden = false;
-      result.className = 'verify-result verify-result--err';
-      result.innerHTML = `<strong>Not in this browser.</strong> Seismic IDs are stored locally for privacy. To verify a different ID, the issuer must share their device or a signed proof.`;
-    }
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') checkBtn.click();
-  });
+  };
 }
 
 // ============================================================
 // RESET
 // ============================================================
 function initReset() {
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    if (!confirm('Reset your card? This clears all data from this browser.')) return;
-    clearState();
-    toast('Card reset', 'ok');
-    showView('connect');
-  });
+  const btn = document.getElementById('resetBtn');
+  if (!btn) return;
+  btn.onclick = () => {
+    if (confirm('Clear all card data and start over?')) {
+      clearAllState();
+      showView('connect');
+      toast('Reset complete', 'ok');
+    }
+  };
 }
 
 // ============================================================
 // TOAST
 // ============================================================
-let toastTimer = null;
-function toast(message, type = '') {
+function toast(msg, kind) {
   const el = document.getElementById('toast');
-  el.textContent = message;
-  el.className = `toast ${type ? `toast--${type}` : ''}`;
+  if (!el) return;
+  const icon = kind === 'ok' ? 'check-circle' : kind === 'err' ? 'warning-circle' : 'info';
+  el.innerHTML = `<i class="ph-fill ph-${icon}"></i><span>${escapeHtml(msg)}</span>`;
+  el.className = 'toast toast--' + (kind || 'info');
   el.hidden = false;
-  // Force reflow
-  void el.offsetWidth;
-  el.classList.add('is-show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.classList.remove('is-show');
-    setTimeout(() => { el.hidden = true; }, 250);
-  }, 2400);
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.hidden = true; }, 2500);
 }
 
 // ============================================================
-// UTILS
+// BOOT
 // ============================================================
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// ============================================================
-// INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
+function boot() {
   initConnectView();
-  initSignaturePad();
-  initVerifyDialog();
+  initEditIdentity();
   initReset();
   determineInitialView();
-});
+}
 
-// Re-render card on window resize (QR + signature)
-let resizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    if (!document.getElementById('view-builder').hidden) {
-      renderQR();
-    }
-  }, 200);
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}

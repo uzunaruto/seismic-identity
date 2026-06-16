@@ -4,15 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0a0907">
-  <meta name="description" content="Verified Seismic community identity card. Discord for role verification, X for public identity. Premium Web3 membership, yours to share.">
-  <title>Seismic ID — Verified Community Identity</title>
+  <meta name="description" content="Seismic community identity card. Discord-verified, X-linked, yours to share. No wallet, no upload server.">
+  <title>Seismic ID — Community Identity Card</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0907'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23f5b56b' stroke-width='6'/%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 
-  <!-- Phosphor Icons (web font auto-replace) -->
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
@@ -25,16 +24,12 @@
 </head>
 <body>
 
-  <!-- ============================================ -->
-  <!-- HEADER                                       -->
-  <!-- ============================================ -->
   <header class="hdr">
     <a href="/" class="hdr__brand" aria-label="Seismic ID home">
       <span class="hdr__mark" aria-hidden="true"></span>
       <span class="hdr__wordmark">SEISMIC<span class="hdr__slash">/</span>ID</span>
     </a>
     <nav class="hdr__nav" aria-label="Primary">
-      <a href="#verify" class="hdr__link">Verify</a>
       <a href="#about" class="hdr__link">About</a>
       <button type="button" id="resetBtn" class="hdr__link hdr__link--btn" hidden>Reset</button>
     </nav>
@@ -42,42 +37,40 @@
 
   <main id="app">
 
-    <!-- ============================================ -->
-    <!-- VIEW 1: CONNECT                              -->
-    <!-- ============================================ -->
+    <!-- VIEW 1: CONNECT -->
     <section id="view-connect" class="view view--connect" aria-labelledby="connect-title">
       <div class="connect">
 
         <aside class="connect__left">
-          <p class="eyebrow">Seismic Community · Identity v2</p>
+          <p class="eyebrow">Seismic Community · v3</p>
           <h1 id="connect-title" class="connect__title">
-            <span class="connect__title-line">A verified</span>
-            <span class="connect__title-line">identity,</span>
-            <span class="connect__title-line connect__title-line--accent">not just a wallet.</span>
+            <span class="connect__title-line">Verified by</span>
+            <span class="connect__title-line">Discord,</span>
+            <span class="connect__title-line connect__title-line--accent">no wallet needed.</span>
           </h1>
           <p class="connect__lede">
-            Build a Seismic community card from who you actually are on the social web. Discord verifies your role, X becomes your public face. No wallet required.
+            Build a Seismic community card from who you actually are on the social web. Discord verifies your role and pulls your avatar, X becomes your public handle. Yours to keep, yours to share.
           </p>
           <ul class="connect__pillars">
             <li>
               <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
               <div>
-                <strong>Discord verifies role</strong>
-                <span>Read-only. We never post, DM, or scrape your server list.</span>
+                <strong>Discord is identity</strong>
+                <span>Read-only. We never post, DM, or scrape your server list. Role auto-detects from registry.</span>
               </div>
             </li>
             <li>
               <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
               <div>
-                <strong>X is the public face</strong>
-                <span>OAuth auto-fill, or paste your own. You stay in control.</span>
+                <strong>X is your handle</strong>
+                <span>Just type it. No login, no OAuth. Self-submitted, clearly marked.</span>
               </div>
             </li>
             <li>
               <i class="ph-fill ph-fingerprint" aria-hidden="true"></i>
               <div>
                 <strong>Yours forever</strong>
-                <span>Card lives in your browser. Export as PNG, PDF, or share to X.</span>
+                <span>Three form factors, four themes, holographic finish, six card variants. Live in your browser.</span>
               </div>
             </li>
           </ul>
@@ -85,24 +78,19 @@
 
         <div class="connect__right">
           <div class="card-shell card-shell--mock" aria-hidden="true">
-            <div class="card-mock">
-              <div class="card-mock__bar"></div>
+            <div class="card-mock card-mock--portrait card-mock--obsidian" data-avatar="circle">
               <div class="card-mock__top">
                 <div class="card-mock__pfp"></div>
                 <div class="card-mock__id">
                   <div class="card-mock__name"></div>
                   <div class="card-mock__handle"></div>
                 </div>
-                <div class="card-mock__check"></div>
               </div>
-              <div class="card-mock__rows">
-                <div class="card-mock__row"></div>
-                <div class="card-mock__row"></div>
-                <div class="card-mock__row"></div>
-              </div>
+              <div class="card-mock__role"></div>
+              <div class="card-mock__sig"></div>
               <div class="card-mock__foot">
-                <div class="card-mock__sig"></div>
                 <div class="card-mock__qr"></div>
+                <div class="card-mock__id-code"></div>
               </div>
             </div>
           </div>
@@ -110,14 +98,11 @@
           <div class="connect__cta">
             <a href="/api/discord/auth" class="btn btn--discord" id="discordBtn">
               <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
-              <span>Connect Discord</span>
-              <span class="btn__sub">verifies role</span>
-            </a>
-            <a href="/api/x/auth" class="btn btn--x btn--coming" id="xBtn" data-coming-soon="true">
-              <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
-              <span>Connect X</span>
-              <span class="btn__sub">auto-fills profile</span>
-              <span class="btn__pill">Coming soon</span>
+              <div class="btn__text">
+                <span class="btn__label">Connect Discord</span>
+                <span class="btn__sub">verifies role, pulls avatar</span>
+              </div>
+              <i class="ph ph-arrow-right btn__arrow" aria-hidden="true"></i>
             </a>
           </div>
 
@@ -125,42 +110,50 @@
             <details>
               <summary>
                 <i class="ph ph-pencil-simple" aria-hidden="true"></i>
-                <span>No X account? Fill it in manually</span>
+                <span>Continue without Discord</span>
                 <i class="ph ph-caret-down" aria-hidden="true"></i>
               </summary>
               <form id="manualForm" class="manual-form" novalidate>
-                <div class="field">
-                  <label for="mPfp">Profile picture</label>
-                  <div class="field__pfp">
-                    <div class="field__pfp-preview" id="mPfpPreview" aria-hidden="true"></div>
-                    <div class="field__pfp-actions">
-                      <input type="url" id="mPfpUrl" placeholder="Paste image URL" autocomplete="off">
-                      <span class="field__or">or</span>
-                      <input type="file" id="mPfpFile" accept="image/*" hidden>
-                      <button type="button" class="btn btn--ghost btn--sm" id="mPfpUpload">
-                        <i class="ph ph-upload-simple" aria-hidden="true"></i> Upload
-                      </button>
-                    </div>
-                  </div>
-                </div>
                 <div class="field">
                   <label for="mName">Display name</label>
                   <input type="text" id="mName" maxlength="32" required placeholder="Archanist">
                 </div>
                 <div class="field">
+                  <label for="mPfp">Profile picture URL</label>
+                  <input type="url" id="mPfp" placeholder="https://..." autocomplete="off">
+                  <p class="field__hint">Paste a Discord PFP link, X profile image, or any image URL.</p>
+                </div>
+                <div class="field">
                   <label for="mHandle">X handle</label>
                   <div class="field__prefix">
                     <span>@</span>
-                    <input type="text" id="mHandle" maxlength="32" required placeholder="archanisteth" pattern="[A-Za-z0-9_]+">
+                    <input type="text" id="mHandle" maxlength="32" placeholder="archanisteth" pattern="[A-Za-z0-9_]+">
                   </div>
                 </div>
+                <div class="field">
+                  <label for="mRole">Role</label>
+                  <select id="mRole">
+                    <option value="">— pick a role (optional) —</option>
+                    <option value="Magnitude 9" data-mag="9">Magnitude 9 · massive</option>
+                    <option value="Magnitude 8" data-mag="8">Magnitude 8 · great</option>
+                    <option value="Magnitude 7" data-mag="7">Magnitude 7 · strong</option>
+                    <option value="Magnitude 6" data-mag="6">Magnitude 6 · moderate</option>
+                    <option value="Magnitude 5" data-mag="5">Magnitude 5 · moderate</option>
+                    <option value="Magnitude 4" data-mag="4">Magnitude 4 · minor</option>
+                    <option value="Magnitude 3" data-mag="3">Magnitude 3 · minor</option>
+                    <option value="Magnitude 2" data-mag="2">Magnitude 2 · micro</option>
+                    <option value="Magnitude 1" data-mag="1">Magnitude 1 · micro</option>
+                    <option value="Core Team" data-role="core">Core Team</option>
+                    <option value="OG" data-role="og">OG</option>
+                    <option value="Contributor" data-role="contributor">Contributor</option>
+                    <option value="Seismic Member">Seismic Member</option>
+                  </select>
+                  <p class="field__hint">Magnitude roles get a color-coded badge + meter. Self-declared unless in registry.</p>
+                </div>
                 <button type="submit" class="btn btn--primary">
+                  <span>Build my card</span>
                   <i class="ph ph-arrow-right" aria-hidden="true"></i>
-                  <span>Continue with manual profile</span>
                 </button>
-                <p class="manual-form__note">
-                  Manual profiles are marked <strong>Self-Submitted</strong>. Discord role can still attach for verification.
-                </p>
               </form>
             </details>
           </div>
@@ -169,166 +162,163 @@
       </div>
     </section>
 
-    <!-- ============================================ -->
-    <!-- VIEW 2: BUILDER                              -->
-    <!-- ============================================ -->
+    <!-- VIEW 2: BUILDER -->
     <section id="view-builder" class="view view--builder" hidden aria-labelledby="builder-title">
       <h2 id="builder-title" class="sr-only">Card builder</h2>
 
       <div class="builder">
 
-        <!-- LEFT: FORM -->
-        <div class="builder__form">
-          <p class="eyebrow">Your card</p>
+        <aside class="builder__panel">
 
-          <!-- X profile status -->
-          <fieldset class="panel">
-            <legend><i class="ph-fill ph-x-logo" aria-hidden="true"></i> X identity</legend>
-            <div id="xStatus" class="status">
-              <i class="ph ph-circle-notch" aria-hidden="true"></i>
-              <span>Loading…</span>
-            </div>
-            <div class="panel__actions">
-              <button type="button" class="btn btn--ghost btn--sm" id="xEditBtn" hidden>
-                <i class="ph ph-pencil-simple" aria-hidden="true"></i> Edit
-              </button>
-              <button type="button" class="btn btn--ghost btn--sm" id="xReconnectBtn" hidden>
-                <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Reconnect
-              </button>
-            </div>
-          </fieldset>
-
-          <!-- Discord status -->
-          <fieldset class="panel">
-            <legend><i class="ph-fill ph-discord-logo" aria-hidden="true"></i> Community verification</legend>
-            <div id="discordStatus" class="status">
-              <i class="ph ph-circle-notch" aria-hidden="true"></i>
-              <span>Loading…</span>
-            </div>
-            <div class="panel__actions">
-              <button type="button" class="btn btn--ghost btn--sm" id="discordReconnectBtn" hidden>
-                <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Reconnect
+          <div class="panel-section">
+            <p class="eyebrow">Identity</p>
+            <div class="id-card" id="identityCard">
+              <div class="id-card__pfp" id="idPfp"></div>
+              <div class="id-card__body">
+                <div class="id-card__name" id="idName">—</div>
+                <div class="id-card__handle" id="idHandle">—</div>
+                <div class="id-card__role" id="idRole" data-role-kind="member" hidden>
+                  <i class="ph-fill ph-seal-check" aria-hidden="true"></i>
+                  <span id="idRoleText">—</span>
+                </div>
+              </div>
+              <button type="button" class="id-card__edit" id="editIdentityBtn" title="Edit identity">
+                <i class="ph ph-pencil-simple" aria-hidden="true"></i>
               </button>
             </div>
-          </fieldset>
+          </div>
 
-          <!-- Signature -->
-          <fieldset class="panel">
-            <legend><i class="ph ph-pen-nib" aria-hidden="true"></i> Digital signature</legend>
-            <p class="panel__hint">Draw with mouse, trackpad, or finger. Clear and retry anytime.</p>
-            <div class="sig-pad">
-              <canvas id="sigCanvas" width="640" height="200" aria-label="Signature drawing area"></canvas>
-              <div class="sig-pad__controls">
-                <button type="button" class="btn btn--ghost btn--sm" id="sigClear">
-                  <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i> Clear
-                </button>
-                <span class="sig-pad__hint" id="sigHint">Sign above</span>
-              </div>
+          <div class="panel-section">
+            <p class="eyebrow">Form factor</p>
+            <div class="seg seg--row" role="radiogroup" id="ratioSeg" aria-label="Aspect ratio">
+              <button type="button" class="seg__opt is-active" data-ratio="portrait" role="radio" aria-checked="true">
+                <span class="seg__shape seg__shape--portrait" aria-hidden="true"></span>
+                <span class="seg__label">3:5</span>
+              </button>
+              <button type="button" class="seg__opt" data-ratio="landscape" role="radio" aria-checked="false">
+                <span class="seg__shape seg__shape--landscape" aria-hidden="true"></span>
+                <span class="seg__label">16:9</span>
+              </button>
+              <button type="button" class="seg__opt" data-ratio="square" role="radio" aria-checked="false">
+                <span class="seg__shape seg__shape--square" aria-hidden="true"></span>
+                <span class="seg__label">1:1</span>
+              </button>
             </div>
-          </fieldset>
+          </div>
 
-          <!-- Card options -->
-          <fieldset class="panel">
-            <legend><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Card options</legend>
-            <div class="opt">
-              <label for="cardTheme">Theme</label>
-              <div class="seg" role="radiogroup" id="cardTheme">
-                <button type="button" class="seg__opt is-active" data-theme="obsidian" role="radio" aria-checked="true">
-                  <span class="seg__dot" style="--c:#0a0907"></span> Obsidian
-                </button>
-                <button type="button" class="seg__opt" data-theme="copper" role="radio" aria-checked="false">
-                  <span class="seg__dot" style="--c:#d97a3c"></span> Copper
-                </button>
-                <button type="button" class="seg__opt" data-theme="fossil" role="radio" aria-checked="false">
-                  <span class="seg__dot" style="--c:#825a6d"></span> Fossil
-                </button>
-              </div>
+          <div class="panel-section">
+            <p class="eyebrow">Theme</p>
+            <div class="seg seg--row" role="radiogroup" id="themeSeg" aria-label="Theme">
+              <button type="button" class="seg__opt is-active" data-theme="obsidian" role="radio" aria-checked="true">
+                <span class="seg__dot" style="--c:#0a0907;--c2:#f5b56b"></span>
+                <span class="seg__label">Obsidian</span>
+              </button>
+              <button type="button" class="seg__opt" data-theme="copper" role="radio" aria-checked="false">
+                <span class="seg__dot" style="--c:#d97a3c;--c2:#fff"></span>
+                <span class="seg__label">Copper</span>
+              </button>
+              <button type="button" class="seg__opt" data-theme="fossil" role="radio" aria-checked="false">
+                <span class="seg__dot" style="--c:#825a6d;--c2:#b8956a"></span>
+                <span class="seg__label">Fossil</span>
+              </button>
             </div>
-            <div class="opt">
-              <label for="cardFin">Finish</label>
-              <div class="seg" role="radiogroup" id="cardFin">
-                <button type="button" class="seg__opt is-active" data-fin="matte" role="radio" aria-checked="true">Matte</button>
-                <button type="button" class="seg__opt" data-fin="holographic" role="radio" aria-checked="false">Holographic</button>
+          </div>
+
+          <div class="panel-section">
+            <p class="eyebrow">Style</p>
+            <div class="opt-grid">
+              <div class="opt-row">
+                <label>Finish</label>
+                <div class="seg" role="radiogroup" id="finishSeg" aria-label="Finish">
+                  <button type="button" class="seg__opt is-active" data-finish="matte" role="radio" aria-checked="true">Matte</button>
+                  <button type="button" class="seg__opt" data-finish="holographic" role="radio" aria-checked="false">Holo</button>
+                </div>
               </div>
-            </div>
-            <div class="opt">
-              <label for="seismicIdDisplay">Seismic ID</label>
-              <div class="opt__row">
-                <code class="opt__id" id="seismicIdDisplay">SEI-0000-0000-0000</code>
-                <div class="opt__row-actions">
-                  <button type="button" class="btn btn--ghost btn--sm" id="copyIdBtn" title="Copy Seismic ID">
-                    <i class="ph ph-copy" aria-hidden="true"></i>
+              <div class="opt-row">
+                <label>Avatar</label>
+                <div class="seg seg--row" role="radiogroup" id="avatarSeg" aria-label="Avatar shape">
+                  <button type="button" class="seg__opt is-active" data-avatar="circle" role="radio" aria-checked="true" title="Circle">
+                    <span class="seg__shape seg__shape--circle" aria-hidden="true"></span>
                   </button>
-                  <button type="button" class="btn btn--ghost btn--sm" id="regenId" title="Generate new ID">
-                    <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
+                  <button type="button" class="seg__opt" data-avatar="squircle" role="radio" aria-checked="false" title="Squircle">
+                    <span class="seg__shape seg__shape--squircle" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="seg__opt" data-avatar="hex" role="radio" aria-checked="false" title="Hex">
+                    <span class="seg__shape seg__shape--hex" aria-hidden="true"></span>
                   </button>
                 </div>
               </div>
-              <div class="opt__row opt__row--link">
-                <a id="verifyLink" href="#" target="_blank" rel="noopener noreferrer" class="opt__verify">
-                  <i class="ph ph-link" aria-hidden="true"></i>
-                  <span>Verify URL</span>
-                  <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
-                </a>
+              <div class="opt-row">
+                <label>Border</label>
+                <div class="seg" role="radiogroup" id="borderSeg" aria-label="Border style">
+                  <button type="button" class="seg__opt is-active" data-border="minimal" role="radio" aria-checked="true">Minimal</button>
+                  <button type="button" class="seg__opt" data-border="glow" role="radio" aria-checked="false">Glow</button>
+                  <button type="button" class="seg__opt" data-border="stamp" role="radio" aria-checked="false">Stamp</button>
+                </div>
               </div>
             </div>
-          </fieldset>
+          </div>
 
-        </div>
+          <div class="panel-section">
+            <p class="eyebrow">Custom title <span class="opt-hint">optional</span></p>
+            <div class="field">
+              <input type="text" id="customTitle" maxlength="24" placeholder="Overrides role label">
+              <p class="field__hint">Leave blank to use your verified role. Color follows automatically.</p>
+            </div>
+          </div>
 
-        <!-- RIGHT: PREVIEW + EXPORT -->
-        <div class="builder__preview">
-          <div class="preview-stage">
+          <div class="panel-section">
+            <p class="eyebrow">Signature</p>
+            <div class="sig-pad">
+              <canvas id="sigCanvas" width="600" height="160" aria-label="Signature drawing area"></canvas>
+              <div class="sig-pad__bar">
+                <span class="sig-pad__hint" id="sigHint">Sign above</span>
+                <button type="button" class="btn btn--ghost btn--sm" id="sigClear">
+                  <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i> Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </aside>
+
+        <div class="builder__stage">
+          <div class="preview-stage" id="previewStage">
             <div class="preview-stage__glow" aria-hidden="true"></div>
-            <article id="card" class="card" data-theme="obsidian" data-fin="matte" role="img" aria-label="Seismic community ID card preview">
+            <article id="card" class="card" data-theme="obsidian" data-ratio="portrait" data-finish="matte" data-avatar="circle" data-border="minimal" data-magnitude="" role="img" aria-label="Seismic community ID card preview">
               <div class="card__noise" aria-hidden="true"></div>
               <div class="card__holo" aria-hidden="true"></div>
+              <div class="card__border" aria-hidden="true"></div>
+              <div class="card__stamp" aria-hidden="true">
+                <span>Verified</span>
+              </div>
 
               <header class="card__head">
                 <div class="card__brand">
                   <span class="card__mark" aria-hidden="true"></span>
                   <span class="card__brand-text">SEISMIC<span>/</span>ID</span>
                 </div>
-                <div class="card__seal" aria-hidden="true">
-                  <span>v2</span>
+                <div class="card__role" id="cardRole" data-role-kind="member" data-magnitude="" hidden>
+                  <span class="card__role-icon" aria-hidden="true">
+                    <i class="ph-fill ph-seal-check"></i>
+                  </span>
+                  <span class="card__role-text" id="cardRoleText">Seismic Member</span>
+                  <span class="card__role-meter" aria-hidden="true" id="cardRoleMeter">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  </span>
                 </div>
               </header>
 
               <div class="card__body">
                 <div class="card__id">
                   <div class="card__pfp" id="cardPfp" aria-hidden="true">
-                    <i class="ph ph-user" aria-hidden="true"></i>
+                    <i class="ph ph-user"></i>
                   </div>
                   <div class="card__id-text">
                     <div class="card__name" id="cardName">Display name</div>
-                    <div class="card__handle">
-                      <a id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a>
-                      <span class="card__verified" id="cardVerified" data-state="unverified" title="Verification status">
-                        <i class="ph-fill ph-seal-check" aria-hidden="true"></i>
-                        <span id="cardVerifiedLabel">Unverified</span>
-                      </span>
-                    </div>
+                    <a class="card__handle" id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a>
                   </div>
                 </div>
-
-                <dl class="card__meta">
-                  <div class="card__row">
-                    <dt>Seismic ID</dt>
-                    <dd><code id="cardSeismicId">SEI-0000-0000-0000</code></dd>
-                  </div>
-                  <div class="card__row">
-                    <dt>Role</dt>
-                    <dd><span class="card__role" id="cardRole">—</span></dd>
-                  </div>
-                  <div class="card__row">
-                    <dt>Issued</dt>
-                    <dd><time id="cardIssued">2026.06.16</time></dd>
-                  </div>
-                  <div class="card__row">
-                    <dt>Network</dt>
-                    <dd>Seismic Mainnet</dd>
-                  </div>
-                </dl>
 
                 <div class="card__sig">
                   <div class="card__sig-label">Signature</div>
@@ -336,20 +326,26 @@
                     <i class="ph ph-pen-nib card__sig-placeholder" aria-hidden="true"></i>
                   </div>
                 </div>
-
-                <div class="card__bottom">
-                  <div class="card__qr" id="cardQr" aria-hidden="true"></div>
-                  <div class="card__bottom-text">
-                    <div class="card__bottom-title">Scan to verify</div>
-                    <div class="card__bottom-sub">seismic-identity.vercel.app</div>
-                  </div>
-                </div>
               </div>
 
               <footer class="card__foot">
-                <span>Verified community member</span>
-                <span class="card__foot-dot" aria-hidden="true">·</span>
-                <span>Privacy-first</span>
+                <div class="card__meta">
+                  <div class="card__meta-row">
+                    <span class="card__meta-key">SEISMIC ID</span>
+                    <code class="card__meta-val" id="cardSeismicId">SEI-0000-0000-0000</code>
+                  </div>
+                  <div class="card__meta-row">
+                    <span class="card__meta-key">ISSUED</span>
+                    <time class="card__meta-val" id="cardIssued">2026.06.16</time>
+                  </div>
+                </div>
+                <div class="card__verify">
+                  <div class="card__qr" id="cardQr" aria-hidden="true"></div>
+                  <div class="card__verify-text">
+                    <div class="card__verify-title">Scan to verify</div>
+                    <div class="card__verify-sub">seismic-identity.vercel.app</div>
+                  </div>
+                </div>
               </footer>
             </article>
           </div>
@@ -357,63 +353,38 @@
           <div class="export">
             <button type="button" class="btn btn--primary" id="exportPng">
               <i class="ph ph-download-simple" aria-hidden="true"></i>
-              <span>Download PNG</span>
+              <span>PNG</span>
             </button>
             <button type="button" class="btn btn--primary" id="exportPdf">
               <i class="ph ph-file-pdf" aria-hidden="true"></i>
-              <span>Download PDF</span>
+              <span>PDF</span>
             </button>
             <button type="button" class="btn btn--x-share" id="shareX">
               <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
               <span>Share to X</span>
             </button>
+            <div class="export__divider" aria-hidden="true"></div>
+            <button type="button" class="btn btn--ghost btn--sm" id="copyIdBtn" title="Copy Seismic ID">
+              <i class="ph ph-copy" aria-hidden="true"></i>
+              <span id="copyIdLabel">SEI-…</span>
+            </button>
+            <button type="button" class="btn btn--ghost btn--sm" id="regenId" title="Generate new ID">
+              <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
+            </button>
           </div>
-
-          <p class="export__note">
-            Your card is stored locally in this browser. No data leaves your device until you export or share.
-          </p>
         </div>
 
       </div>
     </section>
 
-    <!-- ============================================ -->
-    <!-- VERIFY MODAL                                 -->
-    <!-- ============================================ -->
-    <dialog id="verifyDialog" class="dialog" aria-labelledby="verifyTitle">
-      <form method="dialog" class="dialog__inner">
-        <header>
-          <h3 id="verifyTitle">Verify a Seismic ID</h3>
-          <button type="button" class="dialog__close" data-close-dialog aria-label="Close">
-            <i class="ph ph-x" aria-hidden="true"></i>
-          </button>
-        </header>
-        <div class="dialog__body">
-          <p>Paste a Seismic ID to check it against this browser's records.</p>
-          <div class="field">
-            <label for="verifyInput">Seismic ID</label>
-            <input type="text" id="verifyInput" placeholder="SEI-XXXX-XXXX-XXXX" autocomplete="off">
-          </div>
-          <div id="verifyResult" class="verify-result" hidden></div>
-        </div>
-        <footer>
-          <button type="button" class="btn btn--ghost" data-close-dialog>Close</button>
-          <button type="button" class="btn btn--primary" id="verifyCheck">
-            <i class="ph ph-magnifying-glass" aria-hidden="true"></i> Check
-          </button>
-        </footer>
-      </form>
-    </dialog>
-
   </main>
 
   <footer class="ftr">
-    <span>Seismic ID · v2</span>
+    <span>Seismic ID · v3</span>
     <span class="ftr__sep" aria-hidden="true">·</span>
-    <span>Built for the Seismic community</span>
+    <span>Discord-verified, privacy-first</span>
   </footer>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="app.js" defer></script>

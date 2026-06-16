@@ -18,6 +18,8 @@
       --ink: #f4ede4; --ink-2: #c8bcae; --ink-3: #998a7c; --ink-4: #5a4f44;
       --amber: #f5b56b; --amber-2: #ffd28a; --copper: #d97a3c;
       --ok: #7ec48c; --warn: #e2b25a; --err: #d96a5b;
+      --mag-1: #4a5a6a; --mag-2: #3d7a85; --mag-3: #4aa5b3; --mag-4: #5cc48c;
+      --mag-5: #b8c45c; --mag-6: #f5b56b; --mag-7: #d97a3c; --mag-8: #e85d3c; --mag-9: #d63a3a;
       --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', ui-monospace, monospace;
     }
@@ -39,7 +41,7 @@
       pointer-events: none; z-index: -1;
     }
     header {
-      padding: 18px 28px;
+      padding: 16px 28px;
       display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid var(--border);
     }
@@ -50,7 +52,7 @@
     }
     .brand .mark {
       width: 18px; height: 18px; border-radius: 50%;
-      border: 2px solid var(--amber);
+      border: 2px solid var(--amber); position: relative;
     }
     .brand .mark::after {
       content: ''; position: absolute; inset: 3px; border-radius: 50%;
@@ -68,16 +70,24 @@
       padding: 40px 24px;
     }
     .result {
-      max-width: 520px; width: 100%;
+      max-width: 540px; width: 100%;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
       overflow: hidden;
     }
     .result__head {
-      padding: 32px 32px 24px;
-      display: flex; align-items: flex-start; gap: 16px;
+      padding: 28px 32px 22px;
+      display: flex; align-items: flex-start; gap: 18px;
       border-bottom: 1px solid var(--border);
+    }
+    .result__pfp {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--border-2);
+      background-size: cover; background-position: center;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-3); font-size: 24px;
     }
     .result__icon {
       width: 48px; height: 48px; border-radius: 50%;
@@ -92,10 +102,10 @@
       letter-spacing: -0.01em; margin: 0 0 4px;
     }
     .result__sub {
-      font-size: 14px; color: var(--ink-3); line-height: 1.5; margin: 0;
+      font-size: 13.5px; color: var(--ink-3); line-height: 1.5; margin: 0;
     }
     .result__id {
-      padding: 16px 32px;
+      padding: 14px 32px;
       background: var(--bg-2);
       border-bottom: 1px solid var(--border);
       font-family: var(--font-mono);
@@ -112,7 +122,7 @@
       display: inline-flex; align-items: center; gap: 4px;
     }
     .copy-btn:hover { color: var(--ink); border-color: var(--border-2); }
-    .result__body { padding: 24px 32px; }
+    .result__body { padding: 22px 32px; }
     .row {
       display: grid; grid-template-columns: 100px 1fr; gap: 12px;
       padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -123,40 +133,33 @@
       color: var(--ink-3); font-size: 11px; text-transform: uppercase;
       letter-spacing: 0.1em; font-weight: 500; margin: 0;
     }
-    .row dd { margin: 0; color: var(--ink); }
-    .row dd code {
-      font-family: var(--font-mono); font-size: 12px; color: var(--amber);
-      background: var(--bg-2); padding: 2px 6px; border-radius: 4px;
-    }
-    .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--border-2);
-      background-size: cover; background-position: center;
-      display: inline-block; vertical-align: middle;
-      margin-right: 8px;
-    }
+    .row dd { margin: 0; color: var(--ink); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .handle {
-      font-family: var(--font-mono); color: var(--ink-2); font-size: 12px;
+      font-family: var(--font-mono); color: var(--ink-2); font-size: 12.5px;
     }
+    .handle a { color: inherit; text-decoration: none; }
+    .handle a:hover { color: var(--amber); }
     .role-badge {
       display: inline-flex; align-items: center;
-      padding: 3px 10px; border-radius: 4px;
-      background: linear-gradient(135deg, rgba(245, 181, 107, 0.15), rgba(217, 122, 60, 0.1));
-      border: 1px solid rgba(245, 181, 107, 0.3);
-      color: var(--amber-2); font-size: 10px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 4px 10px; border-radius: 4px;
+      font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      background: var(--surface-2); color: var(--ink-2);
+      border: 1px solid var(--border);
     }
-    .role-badge--none {
-      background: transparent; border-color: var(--border); color: var(--ink-4);
-    }
+    .role-badge--mag { background: color-mix(in srgb, var(--mag) 14%, transparent); color: var(--mag); border-color: color-mix(in srgb, var(--mag) 35%, transparent); }
+    .role-meter { display: inline-flex; gap: 1.5px; margin-left: 6px; }
+    .role-meter span { display: block; width: 3px; height: 8px; border-radius: 1px; background: var(--mag, var(--ink-3)); opacity: 0.3; }
+    .role-meter span.on { opacity: 1; box-shadow: 0 0 4px var(--mag); }
     .verif {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 8px; border-radius: 100px;
-      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 100px;
+      font-size: 9.5px; font-weight: 600; text-transform: uppercase;
       letter-spacing: 0.08em; border: 1px solid;
     }
-    .verif--verified { color: var(--amber); background: rgba(245, 181, 107, 0.08); border-color: rgba(245, 181, 107, 0.3); }
+    .verif--verified { color: var(--ok); background: rgba(126, 196, 140, 0.08); border-color: rgba(126, 196, 140, 0.3); }
     .verif--self { color: var(--ink-3); background: rgba(153, 138, 124, 0.08); border-color: rgba(153, 138, 124, 0.25); }
+    .verif--unknown { color: var(--warn); background: rgba(226, 178, 90, 0.08); border-color: rgba(226, 178, 90, 0.3); }
     .result__foot {
       padding: 20px 32px;
       background: var(--bg-2);
@@ -173,6 +176,12 @@
       width: 24px; height: 24px; margin: 0 auto 16px;
       border: 2px solid var(--border); border-top-color: var(--amber);
       border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    .theme-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 3px;
+      font-size: 10px; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.08em; background: var(--surface); color: var(--ink-3);
+      border: 1px solid var(--border);
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 540px) {
@@ -201,7 +210,7 @@
     </div>
   </main>
   <script>
-    const STORAGE_KEY = 'seismicIdProfile.v2';
+    const STORAGE_KEY = 'seismicIdProfile.v3';
 
     function parseIdFromPath() {
       const m = window.location.pathname.match(/\/verify\/(SEI-[A-F0-9-]+)/i);
@@ -224,33 +233,75 @@
       return `${yyyy}.${mm}.${dd}`;
     }
 
-    function renderFound(id, profile) {
-      const x = profile.x;
-      const dc = profile.discord;
-      const isOauth = x?.source === 'oauth';
-
-      let displayName = x?.name || 'Anonymous';
-      let handle = x?.handle || null;
-      let pfp = x?.pfp || null;
-      let verifClass = isOauth ? 'verif--verified' : 'verif--self';
-      let verifText = isOauth ? 'Verified via X' : 'Self-submitted';
-      let verifIcon = isOauth ? 'ph-fill ph-seal-check' : 'ph ph-user-circle';
-
-      let role = '—';
-      let roleClass = 'role-badge role-badge--none';
-      let roleSubtitle = 'Discord not connected';
-      if (dc?.inSeismicGuild) {
-        role = dc.role || 'Seismic Member';
-        roleClass = 'role-badge';
-        roleSubtitle = 'Verified Discord member';
+    function detectMagnitude(role) {
+      if (!role) return null;
+      const m = String(role).match(/^Magnitude\s+(\d+)/i);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (n >= 1 && n <= 9) return n;
       }
+      return null;
+    }
+
+    function magColorVar(n) {
+      return `var(--mag-${n})`;
+    }
+
+    function roleBadge(role) {
+      if (!role) return '<span class="role-badge">—</span>';
+      const mag = detectMagnitude(role);
+      if (mag) {
+        const color = magColorVar(mag);
+        const bars = [];
+        for (let i = 1; i <= 9; i++) {
+          bars.push(`<span class="${i <= mag ? 'on' : ''}"></span>`);
+        }
+        return `<span class="role-badge role-badge--mag" style="--mag:${color}">${escapeHtml(role)}<span class="role-meter" style="--mag:${color}">${bars.join('')}</span></span>`;
+      }
+      return `<span class="role-badge">${escapeHtml(role)}</span>`;
+    }
+
+    function renderFound(id, profile) {
+      const idn = profile.identity;
+      if (!idn) {
+        renderNotFound(id, 'No identity attached to this card.');
+        return;
+      }
+
+      const isDiscord = idn.source === 'discord';
+      const isVerified = idn.tier === 'verified';
+      const isSelf = idn.tier === 'self' || idn.source === 'manual';
+
+      let verifClass = 'verif--unknown';
+      let verifText = 'Self-Submitted';
+      let verifIcon = 'ph ph-user-circle';
+      if (isDiscord && isVerified) {
+        verifClass = 'verif--verified';
+        verifText = 'Discord Verified';
+        verifIcon = 'ph-fill ph-seal-check';
+      } else if (isDiscord) {
+        verifClass = 'verif--self';
+        verifText = 'Discord Linked';
+        verifIcon = 'ph-fill ph-discord-logo';
+      }
+
+      const pfpEl = idn.pfp
+        ? `<div class="result__pfp" style="background-image:url('${escapeHtml(idn.pfp)}')"></div>`
+        : `<div class="result__pfp"><i class="ph ph-user"></i></div>`;
+
+      const handleEl = idn.handle
+        ? `<span class="handle"><a href="https://x.com/${escapeHtml(idn.handle)}" target="_blank" rel="noopener">@${escapeHtml(idn.handle)}</a></span>`
+        : (isDiscord ? `<span class="handle">discord · ${escapeHtml((idn.id || '').slice(-4) || '?')}</span>` : '');
 
       document.getElementById('root').innerHTML = `
         <div class="result__head">
-          <div class="result__icon result__icon--ok"><i class="ph-fill ph-seal-check"></i></div>
-          <div>
-            <h1 class="result__title">Verified Seismic member</h1>
-            <p class="result__sub">This Seismic ID was issued from this browser. All data was self-attested by the holder.</p>
+          ${pfpEl}
+          <div style="flex:1; min-width:0">
+            <h1 class="result__title">${escapeHtml(idn.name || 'Seismic member')}</h1>
+            <p class="result__sub">
+              ${handleEl}
+              <span class="verif ${verifClass}" style="margin-left:8px"><i class="${verifIcon}"></i> ${verifText}</span>
+            </p>
           </div>
         </div>
         <div class="result__id">
@@ -263,54 +314,43 @@
           </button>
         </div>
         <div class="result__body">
-          <dl>
-            ${x ? `
-              <div class="row">
-                <dt>Identity</dt>
-                <dd>
-                  ${pfp ? `<span class="avatar" style="background-image:url('${escapeHtml(pfp)}')"></span>` : ''}
-                  <strong>${escapeHtml(displayName)}</strong>
-                  ${handle ? `<span class="handle">@${escapeHtml(handle)}</span>` : ''}
-                  <span class="verif ${verifClass}" style="margin-left:8px"><i class="${verifIcon}"></i> ${verifText}</span>
-                </dd>
-              </div>
-            ` : ''}
-            <div class="row">
-              <dt>Role</dt>
-              <dd><span class="${roleClass}">${escapeHtml(role)}</span> <span style="color:var(--ink-3);font-size:12px;margin-left:6px">${escapeHtml(roleSubtitle)}</span></dd>
-            </div>
-            <div class="row">
-              <dt>Issued</dt>
-              <dd>${formatDate(profile.issued)}</dd>
-            </div>
-            ${profile.signature ? `
-              <div class="row">
-                <dt>Signed</dt>
-                <dd><i class="ph ph-pen-nib" style="color:var(--ok)"></i> Digitally signed by holder</dd>
-              </div>
-            ` : `
-              <div class="row">
-                <dt>Signed</dt>
-                <dd style="color:var(--ink-3)">No signature on file</dd>
-              </div>
-            `}
-          </dl>
+          <div class="row">
+            <dt>Role</dt>
+            <dd>${roleBadge(idn.role)}</dd>
+          </div>
+          <div class="row">
+            <dt>Source</dt>
+            <dd><span class="theme-pill">${isDiscord ? 'Discord' : 'Manual'}</span></dd>
+          </div>
+          <div class="row">
+            <dt>Theme</dt>
+            <dd>${escapeHtml(profile.theme || 'obsidian')} · ${escapeHtml(profile.ratio || 'portrait')} · ${escapeHtml(profile.finish || 'matte')}</dd>
+          </div>
+          <div class="row">
+            <dt>Issued</dt>
+            <dd>${formatDate(profile.issued)}</dd>
+          </div>
+          <div class="row">
+            <dt>Signed</dt>
+            <dd>${profile.signature ? '<i class="ph ph-pen-nib" style="color:var(--ok)"></i> Digitally signed by holder' : '<span style="color:var(--ink-3)">No signature on file</span>'}</dd>
+          </div>
         </div>
         <div class="result__foot">
           <strong>About this verification.</strong> Seismic IDs are stored in the issuing browser only, by design.
           This page can confirm an ID if scanned by the same device that created it. For cross-device verification,
-          the issuer can export a signed proof from the card builder. A public registry is intentionally out of scope for v2.
+          the issuer can export a signed proof from the card builder.
         </div>
       `;
     }
 
-    function renderNotFound(id) {
+    function renderNotFound(id, note) {
+      const msg = note || 'The Seismic ID below was not issued from this device.';
       document.getElementById('root').innerHTML = `
         <div class="result__head">
           <div class="result__icon result__icon--warn"><i class="ph ph-question"></i></div>
           <div>
             <h1 class="result__title">ID not in this browser</h1>
-            <p class="result__sub">The Seismic ID below was not issued from this device.</p>
+            <p class="result__sub">${escapeHtml(msg)}</p>
           </div>
         </div>
         <div class="result__id">
