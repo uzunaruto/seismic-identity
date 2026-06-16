@@ -1035,23 +1035,24 @@ main { flex: 1; }
 .passport__body {
   flex: 1;
   display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 14px;
+  grid-template-columns: 108px 1fr;
+  gap: 10px;
   align-items: start;
   min-height: 0;
+  overflow: hidden;
 }
 
 /* portrait with bronze filigree frame */
 .passport__portrait {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
 }
 .passport__portrait-frame {
   position: relative;
-  width: 110px;
-  height: 130px;
+  width: 96px;
+  height: 110px;
   background: linear-gradient(135deg, var(--pp-bronze) 0%, var(--pp-bronze-dark) 100%);
   padding: 4px;
   border-radius: 2px;
@@ -1191,14 +1192,14 @@ main { flex: 1; }
   line-height: 1;
 }
 
-/* era stamps — passport visa style, 2x2 grid in left column */
+/* era stamps — passport visa style, compact 1x4 row in left column below magnitude */
 .passport__stamps {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 6px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 2px;
   width: 100%;
-  margin-top: 2px;
-  padding-top: 6px;
+  margin-top: 4px;
+  padding-top: 5px;
   border-top: 1px dashed rgba(110, 79, 26, 0.25);
 }
 .passport__stamp-item {
@@ -1209,8 +1210,8 @@ main { flex: 1; }
   font-family: var(--font-mono);
 }
 .passport__stamp-circle {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 1.2px solid var(--pp-ink-soft);
   background: transparent;
@@ -1235,19 +1236,26 @@ main { flex: 1; }
   color: var(--pp-bronze-dark);
   transform: rotate(4deg);
 }
-.passport__stamp-circle i {
-  font-size: 11px;
-  line-height: 1;
+.passport__stamp-circle svg {
+  width: 10px;
+  height: 10px;
 }
 .passport__stamp-item:nth-child(2) .passport__stamp-circle { transform: rotate(5deg); }
 .passport__stamp-item:nth-child(3) .passport__stamp-circle { transform: rotate(-6deg); }
 .passport__stamp-item:nth-child(4) .passport__stamp-circle { transform: rotate(2deg); }
 .passport__stamp-name {
-  font-size: 6.5px;
-  letter-spacing: 0.12em;
+  font-size: 6px;
+  letter-spacing: 0.08em;
   color: var(--pp-ink);
   font-weight: 600;
-  margin-top: 2px;
+  margin-top: 1px;
+  line-height: 1;
+}
+.passport__stamp-date {
+  font-size: 5.5px;
+  letter-spacing: 0.02em;
+  color: var(--pp-ink-soft);
+  line-height: 1;
 }
 .passport__stamp-date {
   font-size: 5.5px;
@@ -1601,6 +1609,7 @@ main { flex: 1; }
   justify-content: center;
   padding-top: 4px;
   border-top: none;
+  margin-top: auto;
 }
 .passport__tagline {
   font-family: var(--font-display);
