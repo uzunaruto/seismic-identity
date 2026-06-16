@@ -17,7 +17,7 @@ const SEISMIC_GUILD_ID = '1343751435711414362';
 let MEMBERS = {};
 try {
   const here = dirname(fileURLToPath(import.meta.url));
-  const raw = await readFile(join(here, '..', '..', 'public', 'data', 'members.json'), 'utf8');
+  const raw = await readFile(join(here, '..', 'data', 'members.json'), 'utf8');
   MEMBERS = JSON.parse(raw).members || {};
 } catch (e) {
   console.warn('members.json not loaded, falling back to default:', e.message);
