@@ -180,6 +180,19 @@ function initConnectView() {
   const pfpFileInput = document.getElementById('mPfpFile');
   const pfpUploadBtn = document.getElementById('mPfpUpload');
 
+  // X "Coming soon" button — intercept click, open manual form
+  const xBtn = document.getElementById('xBtn');
+  if (xBtn && xBtn.dataset.comingSoon === 'true') {
+    xBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toast('X OAuth coming soon — fill the manual form below', 'info');
+      const details = document.querySelector('.connect__manual details');
+      if (details) details.open = true;
+      const manualForm = document.getElementById('manualForm');
+      if (manualForm) manualForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
   let manualPfp = null;
 
   pfpUploadBtn.addEventListener('click', () => pfpFileInput.click());
