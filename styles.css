@@ -1008,6 +1008,17 @@ main { flex: 1; }
   color: var(--pp-ink);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 30px;
+  overflow: visible;
+}
+.passport__brand-img {
+  display: block;
+  width: 22px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 0.5px rgba(74, 53, 39, 0.4));
 }
 .passport__brand-text {
   font-family: var(--font-display);
@@ -1174,6 +1185,100 @@ main { flex: 1; }
   font-weight: 700;
   color: var(--pp-ink);
   line-height: 1;
+}
+
+/* era stamps — passport visa style, 2x2 grid in left column */
+.passport__stamps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 6px;
+  width: 100%;
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(110, 79, 26, 0.25);
+}
+.passport__stamp-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-mono);
+}
+.passport__stamp-circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.2px solid var(--pp-ink-soft);
+  background: transparent;
+  color: var(--pp-ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transform: rotate(-3deg);
+  transition: transform 0.2s;
+}
+.passport__stamp-circle::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 0.5px solid var(--pp-ink-soft);
+  opacity: 0.4;
+}
+.passport__stamp-circle--gold {
+  border-color: var(--pp-bronze);
+  color: var(--pp-bronze-dark);
+  transform: rotate(4deg);
+}
+.passport__stamp-circle i {
+  font-size: 11px;
+  line-height: 1;
+}
+.passport__stamp-item:nth-child(2) .passport__stamp-circle { transform: rotate(5deg); }
+.passport__stamp-item:nth-child(3) .passport__stamp-circle { transform: rotate(-6deg); }
+.passport__stamp-item:nth-child(4) .passport__stamp-circle { transform: rotate(2deg); }
+.passport__stamp-name {
+  font-size: 6.5px;
+  letter-spacing: 0.12em;
+  color: var(--pp-ink);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.passport__stamp-date {
+  font-size: 5.5px;
+  color: var(--pp-ink-mute);
+  letter-spacing: 0.1em;
+  font-style: italic;
+}
+
+/* citizen tenure marker */
+.passport__tenure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 100%;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(110, 79, 26, 0.2);
+}
+.passport__tenure-label {
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  letter-spacing: 0.22em;
+  color: var(--pp-ink-soft);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.passport__tenure-value {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pp-ink);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.1;
 }
 
 /* fields column on right side of body */
@@ -1375,20 +1480,20 @@ main { flex: 1; }
   letter-spacing: 0.16em;
   color: var(--pp-ink);
   text-transform: uppercase;
-  margin: 0;
+  margin: 0 0 10px 0;
   text-align: left;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--pp-ink-soft);
 }
 
 .passport__timeline {
   list-style: none;
-  margin: 0;
-  padding: 4px 0 0 0;
+  margin: 0 0 14px 0;
+  padding: 0;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 /* dotted vertical line behind timeline */
 .passport__timeline::before {

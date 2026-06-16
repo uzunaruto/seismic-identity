@@ -507,6 +507,26 @@ function formatJoinedDate(isoOrDate) {
   return `${day} / ${month} / ${year}`;
 }
 
+function formatTenure(isoOrDate) {
+  if (!isoOrDate) return null;
+  let d;
+  if (isoOrDate instanceof Date) d = isoOrDate;
+  else if (typeof isoOrDate === 'string') {
+    d = new Date(isoOrDate.includes('T') ? isoOrDate : isoOrDate + 'T00:00:00Z');
+  } else return null;
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  const months = (now.getUTCFullYear() - d.getUTCFullYear()) * 12
+               + (now.getUTCMonth() - d.getUTCMonth());
+  const years = Math.floor(months / 12);
+  const remMonths = months - years * 12;
+  if (years >= 2) return `${years} YEARS`;
+  if (years === 1) return remMonths > 0 ? `1 YR ${remMonths} MO` : `1 YEAR`;
+  if (months >= 1) return `${months} MONTHS`;
+  const days = Math.max(1, Math.floor((now.getTime() - d.getTime()) / 86400000));
+  return `${days} DAYS`;
+}
+
 // deterministic barcode widths from a seed string (so the barcode is stable for the same ID)
 function barcodeBars(seed, count = 50) {
   let h = 0;
@@ -604,6 +624,12 @@ function renderCard() {
   const joinedDate = id && id.joinedAt;
   joined.textContent = formatJoinedDate(joinedDate) || '— · — · —';
 
+  // ----- TENURE (citizen since) -----
+  const tenureEl = document.getElementById('cardTenure');
+  if (tenureEl) {
+    tenureEl.textContent = formatTenure(joinedDate) || 'NEW CITIZEN';
+  }
+
   // ----- REGION -----
   const region = (state.region || '').trim();
   if (region) {
@@ -684,6 +710,25 @@ async function exportCardImage(format) {
           const sigBox = doc.getElementById('cardSig');
           if (sigBox) {
             sigBox.innerHTML = `<img src="${state.signature}" style="width:100%;height:100%;object-fit:contain;display:block">`;
+          }
+        }
+        // Ensure brand logo image is a data URL (html2canvas needs same-origin
+        // or CORS-friendly images, and the cloned DOM doesn't always inherit
+        // the cached load state from the source page)
+        const brandImg = doc.querySelector('.passport__brand-img');
+        if (brandImg && brandImg.src && !brandImg.src.startsWith('data:')) {
+          try {
+            const srcImg = document.querySelector('.passport__brand-img');
+            if (srcImg && srcImg.complete && srcImg.naturalWidth > 0) {
+              const c = document.createElement('canvas');
+              c.width  = srcImg.naturalWidth;
+              c.height = srcImg.naturalHeight;
+              const ctx = c.getContext('2d');
+              ctx.drawImage(srcImg, 0, 0);
+              brandImg.src = c.toDataURL('image/png');
+            }
+          } catch (e) {
+            // leave the relative src — html2canvas will still try to load
           }
         }
       },
