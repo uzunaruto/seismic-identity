@@ -1492,7 +1492,7 @@ main { flex: 1; }
   letter-spacing: 0.16em;
   color: var(--pp-ink);
   text-transform: uppercase;
-  margin: 0 0 10px 0;
+  margin: 18px 0 10px 0;
   text-align: left;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--pp-ink-soft);
@@ -1609,7 +1609,6 @@ main { flex: 1; }
   justify-content: center;
   padding-top: 4px;
   border-top: none;
-  margin-top: auto;
 }
 .passport__tagline {
   font-family: var(--font-display);
