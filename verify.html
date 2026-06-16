@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0907">
+  <title>Verify Seismic ID</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0907'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23f5b56b' stroke-width='6'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <style>
+    :root {
+      --bg: #0a0907; --bg-2: #110d09; --surface: #15110d; --surface-2: #1c1813;
+      --border: #2a221c; --border-2: #3a2f25;
+      --ink: #f4ede4; --ink-2: #c8bcae; --ink-3: #998a7c; --ink-4: #5a4f44;
+      --amber: #f5b56b; --amber-2: #ffd28a; --copper: #d97a3c;
+      --ok: #7ec48c; --warn: #e2b25a; --err: #d96a5b;
+      --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(245, 181, 107, 0.06), transparent 60%);
+      pointer-events: none; z-index: -1;
+    }
+    header {
+      padding: 18px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 600; font-size: 14px; letter-spacing: 0.08em;
+      color: var(--ink);
+    }
+    .brand .mark {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--amber);
+    }
+    .brand .mark::after {
+      content: ''; position: absolute; inset: 3px; border-radius: 50%;
+      background: var(--amber); opacity: 0.4;
+    }
+    .brand .slash { color: var(--amber); margin: 0 1px; }
+    .back {
+      font-size: 13px; color: var(--ink-2);
+      padding: 8px 14px; border-radius: 8px;
+      transition: background 180ms;
+    }
+    .back:hover { background: var(--surface); color: var(--ink); }
+    main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 24px;
+    }
+    .result {
+      max-width: 520px; width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .result__head {
+      padding: 32px 32px 24px;
+      display: flex; align-items: flex-start; gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .result__icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 24px;
+    }
+    .result__icon--ok { background: rgba(126, 196, 140, 0.12); color: var(--ok); }
+    .result__icon--err { background: rgba(217, 106, 91, 0.12); color: var(--err); }
+    .result__icon--warn { background: rgba(226, 178, 90, 0.12); color: var(--warn); }
+    .result__title {
+      font-size: 20px; font-weight: 600; color: var(--ink);
+      letter-spacing: -0.01em; margin: 0 0 4px;
+    }
+    .result__sub {
+      font-size: 14px; color: var(--ink-3); line-height: 1.5; margin: 0;
+    }
+    .result__id {
+      padding: 16px 32px;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 14px; color: var(--amber);
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .result__id-label { color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .result__id-value { font-weight: 500; }
+    .copy-btn {
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--ink-2); font-size: 11px; padding: 4px 10px;
+      border-radius: 6px; cursor: pointer; transition: all 180ms;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .copy-btn:hover { color: var(--ink); border-color: var(--border-2); }
+    .result__body { padding: 24px 32px; }
+    .row {
+      display: grid; grid-template-columns: 100px 1fr; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      font-size: 14px; align-items: center;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row dt {
+      color: var(--ink-3); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.1em; font-weight: 500; margin: 0;
+    }
+    .row dd { margin: 0; color: var(--ink); }
+    .row dd code {
+      font-family: var(--font-mono); font-size: 12px; color: var(--amber);
+      background: var(--bg-2); padding: 2px 6px; border-radius: 4px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--border-2);
+      background-size: cover; background-position: center;
+      display: inline-block; vertical-align: middle;
+      margin-right: 8px;
+    }
+    .handle {
+      font-family: var(--font-mono); color: var(--ink-2); font-size: 12px;
+    }
+    .role-badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 4px;
+      background: linear-gradient(135deg, rgba(245, 181, 107, 0.15), rgba(217, 122, 60, 0.1));
+      border: 1px solid rgba(245, 181, 107, 0.3);
+      color: var(--amber-2); font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .role-badge--none {
+      background: transparent; border-color: var(--border); color: var(--ink-4);
+    }
+    .verif {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 9px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; border: 1px solid;
+    }
+    .verif--verified { color: var(--amber); background: rgba(245, 181, 107, 0.08); border-color: rgba(245, 181, 107, 0.3); }
+    .verif--self { color: var(--ink-3); background: rgba(153, 138, 124, 0.08); border-color: rgba(153, 138, 124, 0.25); }
+    .result__foot {
+      padding: 20px 32px;
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--ink-3); line-height: 1.6;
+    }
+    .result__foot strong { color: var(--ink-2); }
+    .result__foot a { color: var(--amber); text-decoration: none; }
+    .result__foot a:hover { text-decoration: underline; }
+    .skeleton {
+      padding: 60px 32px; text-align: center; color: var(--ink-3);
+    }
+    .spinner {
+      width: 24px; height: 24px; margin: 0 auto 16px;
+      border: 2px solid var(--border); border-top-color: var(--amber);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 540px) {
+      main { padding: 24px 16px; }
+      .result__head, .result__body, .result__foot, .result__id { padding-left: 20px; padding-right: 20px; }
+      .row { grid-template-columns: 80px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="brand" aria-label="Seismic ID home">
+      <span class="mark"></span>
+      <span>SEISMIC<span class="slash">/</span>ID</span>
+    </a>
+    <a href="/" class="back">
+      <i class="ph ph-arrow-left" style="font-size:14px"></i> Back
+    </a>
+  </header>
+  <main>
+    <div id="root" class="result">
+      <div class="skeleton">
+        <div class="spinner"></div>
+        <div>Looking up Seismic ID…</div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const STORAGE_KEY = 'seismicIdProfile.v2';
+
+    function parseIdFromPath() {
+      const m = window.location.pathname.match(/\/verify\/(SEI-[A-F0-9-]+)/i);
+      return m ? m[1].toUpperCase() : null;
+    }
+
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}.${mm}.${dd}`;
+    }
+
+    function renderFound(id, profile) {
+      const x = profile.x;
+      const dc = profile.discord;
+      const isOauth = x?.source === 'oauth';
+
+      let displayName = x?.name || 'Anonymous';
+      let handle = x?.handle || null;
+      let pfp = x?.pfp || null;
+      let verifClass = isOauth ? 'verif--verified' : 'verif--self';
+      let verifText = isOauth ? 'Verified via X' : 'Self-submitted';
+      let verifIcon = isOauth ? 'ph-fill ph-seal-check' : 'ph ph-user-circle';
+
+      let role = '—';
+      let roleClass = 'role-badge role-badge--none';
+      let roleSubtitle = 'Discord not connected';
+      if (dc?.inSeismicGuild) {
+        role = dc.role || 'Seismic Member';
+        roleClass = 'role-badge';
+        roleSubtitle = 'Verified Discord member';
+      }
+
+      document.getElementById('root').innerHTML = `
+        <div class="result__head">
+          <div class="result__icon result__icon--ok"><i class="ph-fill ph-seal-check"></i></div>
+          <div>
+            <h1 class="result__title">Verified Seismic member</h1>
+            <p class="result__sub">This Seismic ID was issued from this browser. All data was self-attested by the holder.</p>
+          </div>
+        </div>
+        <div class="result__id">
+          <div>
+            <div class="result__id-label">Seismic ID</div>
+            <div class="result__id-value">${escapeHtml(id)}</div>
+          </div>
+          <button class="copy-btn" onclick="copyId('${escapeHtml(id)}')">
+            <i class="ph ph-copy"></i> Copy
+          </button>
+        </div>
+        <div class="result__body">
+          <dl>
+            ${x ? `
+              <div class="row">
+                <dt>Identity</dt>
+                <dd>
+                  ${pfp ? `<span class="avatar" style="background-image:url('${escapeHtml(pfp)}')"></span>` : ''}
+                  <strong>${escapeHtml(displayName)}</strong>
+                  ${handle ? `<span class="handle">@${escapeHtml(handle)}</span>` : ''}
+                  <span class="verif ${verifClass}" style="margin-left:8px"><i class="${verifIcon}"></i> ${verifText}</span>
+                </dd>
+              </div>
+            ` : ''}
+            <div class="row">
+              <dt>Role</dt>
+              <dd><span class="${roleClass}">${escapeHtml(role)}</span> <span style="color:var(--ink-3);font-size:12px;margin-left:6px">${escapeHtml(roleSubtitle)}</span></dd>
+            </div>
+            <div class="row">
+              <dt>Issued</dt>
+              <dd>${formatDate(profile.issued)}</dd>
+            </div>
+            ${profile.signature ? `
+              <div class="row">
+                <dt>Signed</dt>
+                <dd><i class="ph ph-pen-nib" style="color:var(--ok)"></i> Digitally signed by holder</dd>
+              </div>
+            ` : `
+              <div class="row">
+                <dt>Signed</dt>
+                <dd style="color:var(--ink-3)">No signature on file</dd>
+              </div>
+            `}
+          </dl>
+        </div>
+        <div class="result__foot">
+          <strong>About this verification.</strong> Seismic IDs are stored in the issuing browser only, by design.
+          This page can confirm an ID if scanned by the same device that created it. For cross-device verification,
+          the issuer can export a signed proof from the card builder. A public registry is intentionally out of scope for v2.
+        </div>
+      `;
+    }
+
+    function renderNotFound(id) {
+      document.getElementById('root').innerHTML = `
+        <div class="result__head">
+          <div class="result__icon result__icon--warn"><i class="ph ph-question"></i></div>
+          <div>
+            <h1 class="result__title">ID not in this browser</h1>
+            <p class="result__sub">The Seismic ID below was not issued from this device.</p>
+          </div>
+        </div>
+        <div class="result__id">
+          <div>
+            <div class="result__id-label">Seismic ID</div>
+            <div class="result__id-value">${escapeHtml(id)}</div>
+          </div>
+          <button class="copy-btn" onclick="copyId('${escapeHtml(id)}')">
+            <i class="ph ph-copy"></i> Copy
+          </button>
+        </div>
+        <div class="result__foot">
+          <strong>Why?</strong> Seismic IDs are local-first. This is intentional for privacy, but means cross-device
+          verification needs cooperation from the issuer. Ask them to <a href="/">mint their card</a> on your device,
+          or export a signed proof they can share.
+        </div>
+      `;
+    }
+
+    function renderInvalid() {
+      document.getElementById('root').innerHTML = `
+        <div class="result__head">
+          <div class="result__icon result__icon--err"><i class="ph ph-x-circle"></i></div>
+          <div>
+            <h1 class="result__title">Invalid Seismic ID</h1>
+            <p class="result__sub">The URL doesn't contain a recognizable Seismic ID. IDs look like <code style="font-family:var(--font-mono);color:var(--amber)">SEI-XXXX-XXXX-XXXX</code>.</p>
+          </div>
+        </div>
+        <div class="result__foot">
+          <a href="/">Go to Seismic ID home</a> to mint your own card.
+        </div>
+      `;
+    }
+
+    function copyId(id) {
+      navigator.clipboard.writeText(id).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = '<i class="ph ph-check"></i> Copied';
+          setTimeout(() => { btn.innerHTML = orig; }, 1500);
+        }
+      });
+    }
+
+    function init() {
+      const id = parseIdFromPath();
+      if (!id) {
+        renderInvalid();
+        return;
+      }
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          renderNotFound(id);
+          return;
+        }
+        const profile = JSON.parse(raw);
+        if (profile.seismicId && profile.seismicId.toUpperCase() === id) {
+          renderFound(id, profile);
+        } else {
+          renderNotFound(id);
+        }
+      } catch (e) {
+        renderNotFound(id);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

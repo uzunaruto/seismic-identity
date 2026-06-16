@@ -463,7 +463,30 @@ function renderCardOptions() {
     };
   });
 
-  // Regen ID
+  // Regen ID + copy + verify link
+  const copyBtn = document.getElementById('copyIdBtn');
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      if (!state.seismicId) return;
+      try {
+        await navigator.clipboard.writeText(state.seismicId);
+        const orig = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="ph ph-check" aria-hidden="true"></i>';
+        setTimeout(() => { copyBtn.innerHTML = orig; }, 1500);
+        toast('Seismic ID copied', 'ok');
+      } catch {
+        toast('Copy failed', 'err');
+      }
+    };
+  }
+
+  const verifyLink = document.getElementById('verifyLink');
+  if (verifyLink) {
+    verifyLink.href = state.seismicId
+      ? `${CONFIG.VERIFY_BASE}${state.seismicId}`
+      : '#';
+  }
+
   document.getElementById('regenId').onclick = () => {
     if (!confirm('Generate a new Seismic ID? Your old one will no longer be valid.')) return;
     state.seismicId = generateSeismicId();
@@ -493,7 +516,14 @@ function renderCard() {
 
   // Name + handle
   document.getElementById('cardName').textContent = state.x?.name || 'Display name';
-  document.getElementById('cardHandle').textContent = state.x ? `@${state.x.handle}` : '@handle';
+  const handleEl = document.getElementById('cardHandle');
+  if (state.x) {
+    handleEl.textContent = `@${state.x.handle}`;
+    handleEl.href = `https://x.com/${encodeURIComponent(state.x.handle)}`;
+  } else {
+    handleEl.textContent = '@handle';
+    handleEl.href = '#';
+  }
 
   // Verified
   const verEl = document.getElementById('cardVerified');
