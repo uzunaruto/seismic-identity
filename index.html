@@ -42,55 +42,56 @@
       <div class="connect">
 
         <aside class="connect__left">
-          <p class="eyebrow">Seismic Community · v3</p>
+          <p class="eyebrow">Seismic Community · v4</p>
           <h1 id="connect-title" class="connect__title">
-            <span class="connect__title-line">Verified by</span>
-            <span class="connect__title-line">Discord,</span>
-            <span class="connect__title-line connect__title-line--accent">no wallet needed.</span>
+            <span class="connect__title-line">Your timeline,</span>
+            <span class="connect__title-line connect__title-line--accent">stamped on chain.</span>
           </h1>
           <p class="connect__lede">
-            Build a Seismic community card from who you actually are on the social web. Discord verifies your role and pulls your avatar, X becomes your public handle. Yours to keep, yours to share.
+            A two-page passport that mirrors the Seismic journey. Discord verifies your role, you fill in the rest, and you walk away with a shareable artifact that feels like it came back from 2026.
           </p>
           <ul class="connect__pillars">
             <li>
               <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
               <div>
                 <strong>Discord is identity</strong>
-                <span>Read-only. We never post, DM, or scrape your server list. Role auto-detects from registry.</span>
+                <span>Read-only. We never post, DM, or scrape your server list. Role auto-detects from the registry.</span>
               </div>
             </li>
             <li>
-              <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+              <i class="ph-fill ph-map-pin" aria-hidden="true"></i>
               <div>
-                <strong>X is your handle</strong>
-                <span>Just type it. No login, no OAuth. Self-submitted, clearly marked.</span>
+                <strong>Region, role, magnitude</strong>
+                <span>Pull your magnitude tier, region, and join date straight from the source. The rest is yours to fill.</span>
               </div>
             </li>
             <li>
               <i class="ph-fill ph-fingerprint" aria-hidden="true"></i>
               <div>
-                <strong>Yours forever</strong>
-                <span>Three form factors, four themes, holographic finish, six card variants. Live in your browser.</span>
+                <strong>Yours to share</strong>
+                <span>Export as PNG or PDF. Each passport has a unique ID and a scannable verify code. No wallet needed.</span>
               </div>
             </li>
           </ul>
         </aside>
 
         <div class="connect__right">
-          <div class="card-shell card-shell--mock" aria-hidden="true">
-            <div class="card-mock card-mock--portrait card-mock--obsidian" data-avatar="circle">
-              <div class="card-mock__top">
-                <div class="card-mock__pfp"></div>
-                <div class="card-mock__id">
-                  <div class="card-mock__name"></div>
-                  <div class="card-mock__handle"></div>
-                </div>
+          <div class="passport-mock" aria-hidden="true">
+            <div class="passport-mock__frame">
+              <div class="passport-mock__spine"></div>
+              <div class="passport-mock__page passport-mock__page--left">
+                <div class="passport-mock__title">SEISMIC TIMELINE PASSPORT</div>
+                <div class="passport-mock__portrait"></div>
+                <div class="passport-mock__mag">MAGNITUDE 7</div>
               </div>
-              <div class="card-mock__role"></div>
-              <div class="card-mock__sig"></div>
-              <div class="card-mock__foot">
-                <div class="card-mock__qr"></div>
-                <div class="card-mock__id-code"></div>
+              <div class="passport-mock__page passport-mock__page--right">
+                <div class="passport-mock__brand">SEISMIC</div>
+                <div class="passport-mock__timeline-title">JOURNEY TIMELINE</div>
+                <div class="passport-mock__tl-row"></div>
+                <div class="passport-mock__tl-row"></div>
+                <div class="passport-mock__tl-row"></div>
+                <div class="passport-mock__tl-row"></div>
+                <div class="passport-mock__tl-row"></div>
               </div>
             </div>
           </div>
@@ -149,6 +150,33 @@
                     <option value="Seismic Member">Seismic Member</option>
                   </select>
                   <p class="field__hint">Magnitude roles get a color-coded badge + meter. Self-declared unless in registry.</p>
+                </div>
+                <div class="field">
+                  <label for="mRegion">Region</label>
+                  <input type="text" id="mRegion" maxlength="40" placeholder="Indonesia" list="regionList" autocomplete="off">
+                  <datalist id="regionList">
+                    <option value="Indonesia"></option>
+                    <option value="Singapore"></option>
+                    <option value="United States"></option>
+                    <option value="India"></option>
+                    <option value="Philippines"></option>
+                    <option value="Vietnam"></option>
+                    <option value="Thailand"></option>
+                    <option value="Japan"></option>
+                    <option value="South Korea"></option>
+                    <option value="Australia"></option>
+                    <option value="Brazil"></option>
+                    <option value="Nigeria"></option>
+                    <option value="United Kingdom"></option>
+                    <option value="Germany"></option>
+                    <option value="France"></option>
+                    <option value="Turkey"></option>
+                    <option value="Argentina"></option>
+                    <option value="Canada"></option>
+                    <option value="UAE"></option>
+                    <option value="Malaysia"></option>
+                  </datalist>
+                  <p class="field__hint">Country or region you call home. A flag will appear on the passport.</p>
                 </div>
                 <button type="submit" class="btn btn--primary">
                   <span>Build my card</span>
@@ -260,6 +288,14 @@
           </div>
 
           <div class="panel-section">
+            <p class="eyebrow">Region <span class="opt-hint">your home</span></p>
+            <div class="field">
+              <input type="text" id="regionInput" maxlength="40" placeholder="Indonesia" list="regionList" autocomplete="off">
+              <p class="field__hint">Auto-detected from your Discord locale if you have one, otherwise set manually here.</p>
+            </div>
+          </div>
+
+          <div class="panel-section">
             <p class="eyebrow">X handle <span class="opt-hint">optional</span></p>
             <div class="field">
               <div class="field__prefix">
@@ -288,77 +324,150 @@
         <div class="builder__stage">
           <div class="preview-stage" id="previewStage">
             <div class="preview-stage__glow" aria-hidden="true"></div>
-            <article id="card" class="card" data-theme="obsidian" data-ratio="portrait" data-finish="matte" data-avatar="circle" data-border="minimal" data-magnitude="" role="img" aria-label="Seismic community ID card preview">
-              <div class="card__noise" aria-hidden="true"></div>
-              <div class="card__holo" aria-hidden="true"></div>
-              <div class="card__border" aria-hidden="true"></div>
-              <div class="card__stamp" aria-hidden="true">
-                <span>Verified</span>
+            <article id="card" class="passport" data-theme="parchment" data-finish="matte" data-avatar="circle" data-border="minimal" data-magnitude="" role="img" aria-label="Seismic Timeline Passport preview">
+              <div class="passport__frame">
+                <div class="passport__spine" aria-hidden="true">
+                  <div class="passport__rings">
+                    <span></span><span></span><span></span><span></span>
+                  </div>
+                  <div class="passport__spine-text">
+                    <span class="passport__spine-word">SEISMIC</span>
+                    <span class="passport__spine-sub">PΛSS · PΛSSGS · PΛSTSPORT</span>
+                  </div>
+                  <div class="passport__spine-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 16 L7 8 L12 13 L17 8 L17 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                </div>
+
+                <div class="passport__page passport__page--left">
+                  <div class="passport__inner">
+                    <header class="passport__head">
+                      <span class="passport__num">4.</span>
+                      <div>
+                        <h2 class="passport__title">SEISMIC TIMELINE PASSPORT</h2>
+                        <p class="passport__subtitle">Your journey. Your footprint.</p>
+                      </div>
+                    </header>
+
+                    <div class="passport__body">
+                      <div class="passport__portrait">
+                        <div class="passport__portrait-frame">
+                          <div class="passport__portrait-img" id="cardPfp">
+                            <i class="ph ph-user"></i>
+                          </div>
+                        </div>
+                        <div class="passport__nameplate">
+                          <span id="cardName">NAME</span>
+                        </div>
+                        <div class="passport__magnitude" id="cardMagnitude" data-magnitude="">
+                          <span class="passport__gem passport__gem--purple" aria-hidden="true"></span>
+                          <div class="passport__magnitude-text">
+                            <span class="passport__magnitude-label">MAGNITUDE</span>
+                            <span class="passport__magnitude-value" id="cardMagnitudeValue">—</span>
+                          </div>
+                          <span class="passport__gem passport__gem--gold" aria-hidden="true"></span>
+                        </div>
+                      </div>
+
+                      <dl class="passport__fields">
+                        <div class="passport__field">
+                          <dt>Role</dt>
+                          <dd id="cardRole" class="passport__field-role">Seismic Member</dd>
+                        </div>
+                        <div class="passport__field">
+                          <dt>Faction</dt>
+                          <dd class="passport__field-faction">SEISMIC</dd>
+                        </div>
+                        <div class="passport__field">
+                          <dt>Joined</dt>
+                          <dd id="cardJoined">— · — · —</dd>
+                        </div>
+                        <div class="passport__field">
+                          <dt>Region</dt>
+                          <dd id="cardRegion">
+                            <span class="passport__flag" id="cardFlag">🌐</span>
+                            <span id="cardRegionName">EARTH</span>
+                          </dd>
+                        </div>
+                        <div class="passport__field">
+                          <dt>Passport ID</dt>
+                          <dd><code id="cardSeismicId">SEI-0000-0000-0000</code></dd>
+                        </div>
+                        <div class="passport__field">
+                          <dt>X Handle</dt>
+                          <dd><a id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a></dd>
+                        </div>
+                      </dl>
+                    </div>
+
+                    <footer class="passport__foot passport__foot--left">
+                      <div class="passport__barcode" id="cardBarcode" aria-hidden="true"></div>
+                      <div class="passport__stamp" aria-hidden="true">
+                        <div class="passport__stamp-ring">
+                          <span>SEISMIC · CITIZEN · SEISMIC · CITIZEN ·</span>
+                        </div>
+                        <div class="passport__stamp-bird" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 14 C7 11 9 10 12 10 C15 10 17 11 19 14 C18 16 16 17 14 17 L10 17 C8 17 6 16 5 14 Z M9 8 C9 7 10 6 11 6 C12 6 13 7 13 8 C13 9 12 9 11 9 C10 9 9 9 9 8 Z" fill="currentColor"/></svg>
+                        </div>
+                      </div>
+                      <div class="passport__sig-wrap">
+                        <div class="passport__sig-script" id="cardSig">Seismic</div>
+                      </div>
+                      <div class="passport__chevrons" aria-hidden="true">»  »  »</div>
+                    </footer>
+                  </div>
+                </div>
+
+                <div class="passport__page passport__page--right">
+                  <div class="passport__inner">
+                    <header class="passport__head passport__head--right">
+                      <div class="passport__chevrons passport__chevrons--top" aria-hidden="true">» » »</div>
+                      <div class="passport__brand">
+                        <span class="passport__brand-mark" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2 L20 8 L20 16 L12 22 L4 16 L4 8 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 2 L12 22 M4 8 L20 16 M20 8 L4 16" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg>
+                        </span>
+                        <span class="passport__brand-text">SEISMIC</span>
+                      </div>
+                    </header>
+
+                    <h3 class="passport__timeline-title">JOURNEY TIMELINE</h3>
+
+                    <ol class="passport__timeline">
+                      <li>
+                        <span class="passport__tl-date">FEB 2025</span>
+                        <span class="passport__tl-icon"><i class="ph-fill ph-shield-check"></i></span>
+                        <span class="passport__tl-name">THE GENESIS</span>
+                      </li>
+                      <li>
+                        <span class="passport__tl-date">2025–2026</span>
+                        <span class="passport__tl-icon"><i class="ph-fill ph-diamond"></i></span>
+                        <span class="passport__tl-name">$17M RAISED<small>BACKED BY A16Z</small></span>
+                      </li>
+                      <li>
+                        <span class="passport__tl-date">MAR 2025</span>
+                        <span class="passport__tl-icon"><i class="ph-fill ph-atom"></i></span>
+                        <span class="passport__tl-name">DEVELOPER TESTNET</span>
+                      </li>
+                      <li>
+                        <span class="passport__tl-date">MAR 2026</span>
+                        <span class="passport__tl-icon"><i class="ph-fill ph-users-three"></i></span>
+                        <span class="passport__tl-name">PUBLIC TESTNET</span>
+                      </li>
+                      <li class="passport__timeline-current">
+                        <span class="passport__tl-date">TBA</span>
+                        <span class="passport__tl-icon"><i class="ph-fill ph-rocket-launch"></i></span>
+                        <span class="passport__tl-name">MAINNET ASCENSION</span>
+                      </li>
+                    </ol>
+
+                    <div class="passport__map" aria-hidden="true"></div>
+
+                    <footer class="passport__foot passport__foot--right">
+                      <p class="passport__tagline">EVERY STEP MATTERS. EVERY IMPACT COUNTS.</p>
+                    </footer>
+                  </div>
+                </div>
               </div>
-
-              <header class="card__head">
-                <div class="card__brand">
-                  <span class="card__mark" aria-hidden="true"></span>
-                  <span class="card__brand-text">SEISMIC<span>/</span>ID</span>
-                </div>
-                <div class="card__role" id="cardRole" data-role-kind="member" data-magnitude="" hidden>
-                  <span class="card__role-icon" aria-hidden="true">
-                    <i class="ph-fill ph-seal-check"></i>
-                  </span>
-                  <span class="card__role-text" id="cardRoleText">Seismic Member</span>
-                  <span class="card__role-meter" aria-hidden="true" id="cardRoleMeter">
-                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                  </span>
-                </div>
-              </header>
-
-              <div class="card__body">
-                <div class="card__id">
-                  <div class="card__pfp" id="cardPfp" aria-hidden="true">
-                    <i class="ph ph-user"></i>
-                  </div>
-                  <div class="card__id-text">
-                    <div class="card__name" id="cardName">Display name</div>
-                    <a class="card__handle" id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a>
-                  </div>
-                </div>
-
-                <div class="card__sig">
-                  <div class="card__sig-label">Signature</div>
-                  <div class="card__sig-canvas" id="cardSigBox">
-                    <i class="ph ph-pen-nib card__sig-placeholder" aria-hidden="true"></i>
-                  </div>
-                </div>
-
-                <div class="card__mag" id="cardMag" data-magnitude="">
-                  <svg class="card__mag-logo" viewBox="0 0 36 36" aria-hidden="true">
-                    <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
-                    <circle cx="18" cy="18" r="13" fill="none" stroke="currentColor" stroke-width="1.2"/>
-                    <path d="M11 24 L11 12 L18 19 L25 12 L25 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div class="card__mag-tag">Ready for Mainnet</div>
-                </div>
-              </div>
-
-              <footer class="card__foot">
-                <div class="card__meta">
-                  <div class="card__meta-row">
-                    <span class="card__meta-key">SEISMIC ID</span>
-                    <code class="card__meta-val" id="cardSeismicId">SEI-0000-0000-0000</code>
-                  </div>
-                  <div class="card__meta-row">
-                    <span class="card__meta-key">ISSUED</span>
-                    <time class="card__meta-val" id="cardIssued">2026.06.16</time>
-                  </div>
-                </div>
-                <div class="card__verify">
-                  <div class="card__qr" id="cardQr" aria-hidden="true"></div>
-                  <div class="card__verify-text">
-                    <div class="card__verify-title">Scan to verify</div>
-                    <div class="card__verify-sub">seismic-identity.vercel.app</div>
-                  </div>
-                </div>
-              </footer>
             </article>
           </div>
 

@@ -13,6 +13,28 @@ import { dirname, join } from 'node:path';
 
 const SEISMIC_GUILD_ID = '1343751435711414362';
 
+// Discord locale (e.g. "en-US", "id", "ja-JP") -> human-readable country.
+// Used as fallback region for users not in members.json registry.
+const LOCALE_TO_REGION = {
+  ID: 'Indonesia', US: 'United States', GB: 'United Kingdom',
+  JP: 'Japan', KR: 'South Korea', CN: 'China', TW: 'Taiwan', HK: 'Hong Kong',
+  DE: 'Germany', FR: 'France', ES: 'Spain', IT: 'Italy', PT: 'Portugal',
+  BR: 'Brazil', AR: 'Argentina', MX: 'Mexico', CL: 'Chile', CO: 'Colombia',
+  RU: 'Russia', TR: 'Turkey', IN: 'India', PK: 'Pakistan', BD: 'Bangladesh',
+  VN: 'Vietnam', TH: 'Thailand', MY: 'Malaysia', PH: 'Philippines',
+  SG: 'Singapore', AU: 'Australia', NZ: 'New Zealand',
+  CA: 'Canada', NL: 'Netherlands', SE: 'Sweden', NO: 'Norway',
+  DK: 'Denmark', FI: 'Finland', PL: 'Poland', UA: 'Ukraine', CZ: 'Czechia',
+  EG: 'Egypt', ZA: 'South Africa', NG: 'Nigeria', KE: 'Kenya',
+  SA: 'Saudi Arabia', AE: 'United Arab Emirates', IL: 'Israel',
+};
+
+function deriveRegionFromLocale(locale) {
+  if (!locale) return null;
+  const code = (locale.split('-')[1] || locale.split('-')[0] || '').toUpperCase();
+  return LOCALE_TO_REGION[code] || null;
+}
+
 // Load members registry (compiled at build time by Vercel)
 let MEMBERS = {};
 try {
@@ -109,6 +131,11 @@ export default async function handler(req, res) {
     const verified = !!member && inSeismicGuild;
     const role = verified ? member.role : (inSeismicGuild ? 'Seismic Member' : null);
     const tier = verified ? member.tier || 'verified' : (inSeismicGuild ? 'self' : 'unknown');
+    const joinedAt = verified && member.joinedAt ? member.joinedAt : null;
+    // Region: explicit per-member override, else locale-derived
+    const region = (verified && member.region)
+      || deriveRegionFromLocale(user.locale)
+      || null;
 
     // 5. Build avatar URL
     const avatarUrl = discordAvatarUrl(user);
@@ -122,6 +149,9 @@ export default async function handler(req, res) {
       inSeismicGuild,
       role,
       tier,
+      joinedAt,
+      region,
+      locale: user.locale || null,
     };
     const encoded = Buffer.from(JSON.stringify(payload)).toString('base64');
 

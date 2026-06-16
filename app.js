@@ -16,9 +16,11 @@ const CONFIG = {
   VERIFY_BASE: 'https://seismic-identity.vercel.app/verify/',
   SEISMIC_GUILD_ID: '1343751435711414362',
 
-  SHARE_TEXT: (name, handle, role) => {
+  SHARE_TEXT: (name, handle, role, magnitude, seismicId) => {
     const r = role ? ` · ${role}` : '';
-    return `Just minted my Seismic Community ID. ${name}${handle ? ` (@${handle})` : ''}${r} · Discord-verified, no wallet needed. #SeismicID`;
+    const m = magnitude ? ` · Magnitude ${magnitude}` : '';
+    const id = seismicId ? `\n\nVerify: ${CONFIG.VERIFY_BASE}${seismicId}` : '';
+    return `Just opened my Seismic passport. ${name}${handle ? ` (@${handle})` : ''}${r}${m}. No wallet, just identity. #SeismicID` + id;
   },
 };
 
@@ -26,12 +28,13 @@ const CONFIG = {
 // STATE
 // ============================================================
 const defaultState = {
-  identity: null,    // { source: 'discord' | 'manual', id, name, handle, pfp, role, magnitude, tier }
+  identity: null,    // { source, id, name, handle, pfp, role, magnitude, tier, joinedAt }
+  region: '',        // user-entered country/region
   signature: null,   // dataURL
   seismicId: null,
   issued: null,
-  ratio: 'portrait', // portrait | landscape | square
-  theme: 'obsidian', // obsidian | copper | fossil
+  ratio: 'landscape', // passport is landscape-only
+  theme: 'parchment', // parchment (only theme — passport locks the look)
   finish: 'matte',   // matte | holographic
   avatar: 'circle',  // circle | squircle | hex
   border: 'minimal', // minimal | glow | stamp
@@ -154,7 +157,10 @@ function handleDiscordCallback() {
       magnitude: detectMagnitude(data.role),
       tier: data.tier || 'unknown',
       inGuild: !!data.inSeismicGuild,
+      joinedAt: data.joinedAt || null,
     };
+    // Region from OAuth (locale-derived or member override)
+    state.region = data.region || state.region || '';
     if (!state.seismicId) {
       state.seismicId = generateSeismicId();
       state.issued = new Date().toISOString();
@@ -181,6 +187,7 @@ function initConnectView() {
     const pfp = document.getElementById('mPfp').value.trim();
     const handle = document.getElementById('mHandle').value.trim().replace(/^@/, '');
     const role = document.getElementById('mRole').value.trim();
+    const region = document.getElementById('mRegion').value.trim();
 
     if (!name) {
       toast('Display name is required', 'err');
@@ -205,7 +212,9 @@ function initConnectView() {
       magnitude: detectMagnitude(role),
       tier: 'self',
       inGuild: false,
+      joinedAt: null,
     };
+    state.region = region || '';
     if (!state.seismicId) {
       state.seismicId = generateSeismicId();
       state.issued = new Date().toISOString();
@@ -222,9 +231,21 @@ function renderBuilder() {
   renderIdentityCard();
   renderSegGroups();
   renderXHandleInput();
+  renderRegionInput();
   renderCard();
   renderExport();
   initSignaturePad();
+}
+
+function renderRegionInput() {
+  const input = document.getElementById('regionInput');
+  if (!input) return;
+  if (input.value !== state.region) input.value = state.region || '';
+  input.oninput = () => {
+    state.region = input.value;
+    saveState();
+    renderCard();
+  };
 }
 
 function renderIdentityCard() {
@@ -440,132 +461,173 @@ function initSignaturePad() {
 }
 
 function renderCardSig() {
-  const box = document.getElementById('cardSigBox');
+  const box = document.getElementById('cardSig');
   if (!box) return;
-  box.innerHTML = '';
   if (state.signature) {
-    const img = document.createElement('img');
-    img.src = state.signature;
-    img.alt = 'Signature';
-    box.appendChild(img);
+    box.classList.remove('is-empty');
+    box.innerHTML = `<img src="${state.signature}" alt="Signature">`;
   } else {
-    const i = document.createElement('i');
-    i.className = 'ph ph-pen-nib card__sig-placeholder';
-    box.appendChild(i);
+    box.classList.add('is-empty');
+    box.textContent = 'Seismic';
   }
 }
 
 // ============================================================
-// CARD RENDER
+// REGION + DATE HELPERS
+// ============================================================
+const REGION_FLAGS = {
+  'indonesia': '🇮🇩', 'singapore': '🇸🇬', 'united states': '🇺🇸', 'usa': '🇺🇸',
+  'india': '🇮🇳', 'philippines': '🇵🇭', 'vietnam': '🇻🇳', 'thailand': '🇹🇭',
+  'japan': '🇯🇵', 'south korea': '🇰🇷', 'korea': '🇰🇷', 'australia': '🇦🇺',
+  'brazil': '🇧🇷', 'nigeria': '🇳🇬', 'united kingdom': '🇬🇧', 'uk': '🇬🇧',
+  'germany': '🇩🇪', 'france': '🇫🇷', 'turkey': '🇹🇷', 'argentina': '🇦🇷',
+  'canada': '🇨🇦', 'uae': '🇦🇪', 'malaysia': '🇲🇾', 'mexico': '🇲🇽',
+  'spain': '🇪🇸', 'italy': '🇮🇹', 'netherlands': '🇳🇱', 'russia': '🇷🇺',
+  'china': '🇨🇳', 'taiwan': '🇹🇼', 'pakistan': '🇵🇰', 'bangladesh': '🇧🇩',
+  'egypt': '🇪🇬', 'south africa': '🇿🇦', 'kenya': '🇰🇪',
+};
+
+function flagForRegion(region) {
+  if (!region) return '🌐';
+  return REGION_FLAGS[region.trim().toLowerCase()] || '🌐';
+}
+
+function formatJoinedDate(isoOrDate) {
+  if (!isoOrDate) return null;
+  // accept "2024-08-15" or ISO string or Date
+  let d;
+  if (isoOrDate instanceof Date) d = isoOrDate;
+  else if (typeof isoOrDate === 'string') {
+    d = new Date(isoOrDate.includes('T') ? isoOrDate : isoOrDate + 'T00:00:00Z');
+  } else return null;
+  if (isNaN(d.getTime())) return null;
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day} / ${month} / ${year}`;
+}
+
+// deterministic barcode widths from a seed string (so the barcode is stable for the same ID)
+function barcodeBars(seed, count = 50) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const bars = [];
+  for (let i = 0; i < count; i++) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    // widths: 1, 2, 3 alternating with gap = 0
+    const w = (h % 3) + 1;
+    bars.push(w);
+  }
+  return bars;
+}
+
+function renderBarcode() {
+  const container = document.getElementById('cardBarcode');
+  if (!container) return;
+  container.innerHTML = '';
+  const seed = state.seismicId || 'SEI-0000-0000-0000';
+  const bars = barcodeBars(seed, 60);
+  for (const w of bars) {
+    const span = document.createElement('span');
+    span.style.width = `${w}px`;
+    if ((bars.indexOf(w) % 4) === 3) {
+      // gap
+      span.style.background = 'transparent';
+      span.style.width = '2px';
+    }
+    container.appendChild(span);
+  }
+}
+
+// ============================================================
+// CARD RENDER (PASSPORT)
 // ============================================================
 function renderCard() {
   const card = document.getElementById('card');
   if (!card) return;
 
-  // data attributes
-  card.dataset.theme = state.theme;
-  card.dataset.ratio = state.ratio;
+  // data attributes (no theme/ratio for passport — locked to parchment/landscape)
+  card.dataset.theme = 'parchment';
   card.dataset.finish = state.finish;
   card.dataset.avatar = state.avatar;
   card.dataset.border = state.border;
 
-  // identity
   const id = state.identity;
   const pfp = document.getElementById('cardPfp');
   const name = document.getElementById('cardName');
   const handle = document.getElementById('cardHandle');
-  const role = document.getElementById('cardRole');
-  const roleText = document.getElementById('cardRoleText');
+  const roleEl = document.getElementById('cardRole');
+  const magEl = document.getElementById('cardMagnitude');
+  const magValue = document.getElementById('cardMagnitudeValue');
+  const joined = document.getElementById('cardJoined');
+  const regionName = document.getElementById('cardRegionName');
+  const regionFlag = document.getElementById('cardFlag');
   const seismicId = document.getElementById('cardSeismicId');
-  const issued = document.getElementById('cardIssued');
 
+  // ----- NAME -----
   if (id) {
-    name.textContent = id.name || '—';
-    const effectiveHandle = state.xHandle || id.handle;
-    if (effectiveHandle) {
-      handle.textContent = `@${effectiveHandle}`;
-      handle.href = `https://x.com/${effectiveHandle}`;
-    } else if (id.source === 'discord') {
-      handle.textContent = 'Seismic Member';
-      handle.href = '#';
-    } else {
-      handle.textContent = '@self';
-      handle.href = '#';
-    }
-    if (id.pfp) {
-      pfp.style.backgroundImage = `url('${id.pfp}')`;
-      pfp.innerHTML = '';
-    } else {
-      pfp.style.backgroundImage = '';
-      pfp.innerHTML = '<i class="ph ph-user"></i>';
-    }
+    name.textContent = (id.name || 'NAME').toString().toUpperCase().slice(0, 18);
   } else {
-    name.textContent = 'Display name';
-    handle.textContent = '@handle';
+    name.textContent = 'NAME';
+  }
+
+  // ----- HANDLE (X) -----
+  const effectiveHandle = state.xHandle || (id && id.handle) || '';
+  if (effectiveHandle) {
+    handle.textContent = '@' + effectiveHandle;
+    handle.href = `https://x.com/${effectiveHandle}`;
+  } else {
+    handle.textContent = '— not set —';
     handle.href = '#';
-    pfp.style.backgroundImage = '';
+  }
+
+  // ----- PFP -----
+  if (id && id.pfp) {
+    pfp.innerHTML = `<img src="${escapeHtml(id.pfp)}" alt="">`;
+  } else {
     pfp.innerHTML = '<i class="ph ph-user"></i>';
   }
 
-  // role badge — always shows verified role (no custom override)
-  const displayLabel = (id && id.role) || 'Seismic Member';
+  // ----- ROLE / MAGNITUDE -----
+  const roleText = (id && id.role) || 'Seismic Member';
   const mag = (id && id.magnitude) || null;
-  roleText.textContent = displayLabel;
-  role.dataset.magnitude = mag || '';
-  role.dataset.roleKind = detectRoleKind(id && id.role);
-  if (mag || (id && id.role)) {
-    role.hidden = false;
+  roleEl.textContent = roleText;
+  if (mag) {
+    magValue.textContent = String(mag);
+    magEl.dataset.magnitude = String(mag);
   } else {
-    role.hidden = true;
+    magValue.textContent = '—';
+    magEl.dataset.magnitude = '';
   }
 
-  // magnitude emblem below signature
-  const magEl = document.getElementById('cardMag');
-  if (magEl) {
-    magEl.dataset.magnitude = mag || '';
+  // ----- JOINED -----
+  const joinedDate = id && id.joinedAt;
+  joined.textContent = formatJoinedDate(joinedDate) || '— · — · —';
+
+  // ----- REGION -----
+  const region = (state.region || '').trim();
+  if (region) {
+    regionName.textContent = region.toUpperCase().slice(0, 24);
+    regionFlag.textContent = flagForRegion(region);
+  } else {
+    regionName.textContent = 'UNSET';
+    regionFlag.textContent = '🌐';
   }
 
-  // meta
+  // ----- SEISMIC ID -----
   seismicId.textContent = state.seismicId || 'SEI-0000-0000-0000';
-  if (state.issued) {
-    const d = new Date(state.issued);
-    issued.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-  }
 
-  // copy label
+  // ----- COPY LABEL -----
   const copyLabel = document.getElementById('copyIdLabel');
   if (copyLabel) {
     copyLabel.textContent = state.seismicId ? state.seismicId.slice(0, 8) + '…' : 'SEI-…';
   }
 
-  // signature
+  // ----- SIGNATURE -----
   renderCardSig();
 
-  // QR
-  renderQR();
-}
-
-function renderQR() {
-  const container = document.getElementById('cardQr');
-  if (!container) return;
-  container.innerHTML = '';
-  if (qrInstance) {
-    try { qrInstance.clear(); } catch {}
-  }
-  if (!window.QRCode) return;
-  const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : CONFIG.VERIFY_BASE;
-  try {
-    qrInstance = new QRCode(container, {
-      text: url,
-      width: 56,
-      height: 56,
-      colorDark: '#0a0907',
-      colorLight: '#f4ede4',
-      correctLevel: QRCode.CorrectLevel.M,
-    });
-  } catch (e) {
-    console.warn('QR render failed:', e);
-  }
+  // ----- BARCODE -----
+  renderBarcode();
 }
 
 // ============================================================
@@ -591,32 +653,38 @@ async function exportCardImage(format) {
     toast('Image library not loaded', 'err');
     return;
   }
-  toast('Rendering card…', 'info');
+  toast('Rendering passport…', 'info');
   try {
+    // Passport is 720x470 base, scale 3 = 2160x1410 (print-ready)
+    // We need an opaque background because the spine + frame are dark
     const canvas = await html2canvas(card, {
-      backgroundColor: null,
+      backgroundColor: '#0a0807',
       scale: 3,
       useCORS: true,
       allowTaint: true,
+      width: 720,
+      height: 470,
+      windowWidth: 720,
+      windowHeight: 470,
     });
     if (format === 'png') {
       const link = document.createElement('a');
-      link.download = `${state.seismicId || 'seismic-id'}.png`;
+      link.download = `${state.seismicId || 'seismic-passport'}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       toast('PNG downloaded', 'ok');
     } else if (format === 'pdf') {
       if (!window.jspdf) { toast('PDF library not loaded', 'err'); return; }
       const { jsPDF } = window.jspdf;
-      const orientation = state.ratio === 'landscape' ? 'l' : 'p';
+      // passport is always landscape (720x470)
       const pdf = new jsPDF({
-        orientation,
+        orientation: 'l',
         unit: 'px',
         format: [canvas.width, canvas.height],
         hotfixes: ['px_scaling'],
       });
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`${state.seismicId || 'seismic-id'}.pdf`);
+      pdf.save(`${state.seismicId || 'seismic-passport'}.pdf`);
       toast('PDF downloaded', 'ok');
     }
   } catch (e) {
@@ -631,7 +699,13 @@ function shareToX() {
     return;
   }
   const effectiveHandle = state.xHandle || state.identity.handle;
-  const text = CONFIG.SHARE_TEXT(state.identity.name, effectiveHandle, state.identity.role);
+  const text = CONFIG.SHARE_TEXT(
+    state.identity.name,
+    effectiveHandle,
+    state.identity.role,
+    state.identity.magnitude,
+    state.seismicId
+  );
   const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
   const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   window.open(intent, '_blank', 'noopener');
