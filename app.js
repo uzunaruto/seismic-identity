@@ -35,7 +35,7 @@ const defaultState = {
   finish: 'matte',   // matte | holographic
   avatar: 'circle',  // circle | squircle | hex
   border: 'minimal', // minimal | glow | stamp
-  customTitle: '',   // overrides role label
+  xHandle: '',       // optional manual X handle override
 };
 
 let state = loadState();
@@ -49,7 +49,12 @@ function loadState() {
     const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
     if (!raw) return { ...defaultState };
     const parsed = JSON.parse(raw);
-    return { ...defaultState, ...parsed };
+    const merged = { ...defaultState, ...parsed };
+    // one-time migration: old customTitle -> xHandle
+    if (parsed.customTitle && !merged.xHandle) {
+      merged.xHandle = parsed.customTitle;
+    }
+    return merged;
   } catch (e) {
     console.warn('Failed to load state:', e);
     return { ...defaultState };
@@ -216,7 +221,7 @@ function initConnectView() {
 function renderBuilder() {
   renderIdentityCard();
   renderSegGroups();
-  renderCustomTitle();
+  renderXHandleInput();
   renderCard();
   renderExport();
   initSignaturePad();
@@ -328,12 +333,18 @@ function renderSegGroups() {
   }
 }
 
-function renderCustomTitle() {
-  const input = document.getElementById('customTitle');
+function renderXHandleInput() {
+  const input = document.getElementById('xHandleInput');
   if (!input) return;
-  input.value = state.customTitle || '';
+  input.value = state.xHandle || '';
   input.oninput = () => {
-    state.customTitle = input.value;
+    const v = input.value.trim().replace(/^@/, '');
+    if (v && !/^[A-Za-z0-9_]{1,32}$/.test(v)) {
+      input.setCustomValidity('Handle: letters, digits, underscore only');
+    } else {
+      input.setCustomValidity('');
+    }
+    state.xHandle = v;
     saveState();
     renderCard();
   };
@@ -470,8 +481,17 @@ function renderCard() {
 
   if (id) {
     name.textContent = id.name || '—';
-    handle.textContent = id.handle ? `@${id.handle}` : (id.source === 'discord' ? '@discord' : '@self');
-    handle.href = id.handle ? `https://x.com/${id.handle}` : '#';
+    const effectiveHandle = state.xHandle || id.handle;
+    if (effectiveHandle) {
+      handle.textContent = `@${effectiveHandle}`;
+      handle.href = `https://x.com/${effectiveHandle}`;
+    } else if (id.source === 'discord') {
+      handle.textContent = 'Seismic Member';
+      handle.href = '#';
+    } else {
+      handle.textContent = '@self';
+      handle.href = '#';
+    }
     if (id.pfp) {
       pfp.style.backgroundImage = `url('${id.pfp}')`;
       pfp.innerHTML = '';
@@ -487,16 +507,22 @@ function renderCard() {
     pfp.innerHTML = '<i class="ph ph-user"></i>';
   }
 
-  // role badge
-  const displayLabel = state.customTitle || (id && id.role) || 'Seismic Member';
-  const mag = state.customTitle ? null : (id && id.magnitude);
+  // role badge — always shows verified role (no custom override)
+  const displayLabel = (id && id.role) || 'Seismic Member';
+  const mag = (id && id.magnitude) || null;
   roleText.textContent = displayLabel;
   role.dataset.magnitude = mag || '';
-  role.dataset.roleKind = detectRoleKind(state.customTitle ? null : (id && id.role));
-  if (mag || id?.role || state.customTitle) {
+  role.dataset.roleKind = detectRoleKind(id && id.role);
+  if (mag || (id && id.role)) {
     role.hidden = false;
   } else {
     role.hidden = true;
+  }
+
+  // magnitude emblem below signature
+  const magEl = document.getElementById('cardMag');
+  if (magEl) {
+    magEl.dataset.magnitude = mag || '';
   }
 
   // meta
@@ -604,7 +630,8 @@ function shareToX() {
     toast('Build your card first', 'err');
     return;
   }
-  const text = CONFIG.SHARE_TEXT(state.identity.name, state.identity.handle, state.customTitle || state.identity.role);
+  const effectiveHandle = state.xHandle || state.identity.handle;
+  const text = CONFIG.SHARE_TEXT(state.identity.name, effectiveHandle, state.identity.role);
   const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
   const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
   window.open(intent, '_blank', 'noopener');

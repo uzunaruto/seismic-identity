@@ -260,10 +260,13 @@
           </div>
 
           <div class="panel-section">
-            <p class="eyebrow">Custom title <span class="opt-hint">optional</span></p>
+            <p class="eyebrow">X handle <span class="opt-hint">optional</span></p>
             <div class="field">
-              <input type="text" id="customTitle" maxlength="24" placeholder="Overrides role label">
-              <p class="field__hint">Leave blank to use your verified role. Color follows automatically.</p>
+              <div class="field__prefix">
+                <span>@</span>
+                <input type="text" id="xHandleInput" maxlength="32" placeholder="archanisteth" pattern="[A-Za-z0-9_]+" autocomplete="off">
+              </div>
+              <p class="field__hint">Leave blank to use your verified X handle. Appears on the card and links to x.com.</p>
             </div>
           </div>
 
@@ -325,6 +328,15 @@
                   <div class="card__sig-canvas" id="cardSigBox">
                     <i class="ph ph-pen-nib card__sig-placeholder" aria-hidden="true"></i>
                   </div>
+                </div>
+
+                <div class="card__mag" id="cardMag" data-magnitude="">
+                  <svg class="card__mag-logo" viewBox="0 0 36 36" aria-hidden="true">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+                    <circle cx="18" cy="18" r="13" fill="none" stroke="currentColor" stroke-width="1.2"/>
+                    <path d="M11 24 L11 12 L18 19 L25 12 L25 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div class="card__mag-tag">Ready for Mainnet</div>
                 </div>
               </div>
 

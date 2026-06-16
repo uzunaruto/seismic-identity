@@ -855,6 +855,7 @@ main { flex: 1; }
 .card[data-ratio="landscape"] .card__body { flex: 1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: center; }
 .card[data-ratio="landscape"] .card__id { flex-direction: row; align-items: center; }
 .card[data-ratio="landscape"] .card__sig { grid-row: 2; grid-column: 1 / -1; }
+.card[data-ratio="landscape"] .card__mag { grid-row: 3; grid-column: 1 / -1; padding-top: 4px; }
 .card[data-ratio="landscape"] .card__foot { width: 100%; flex-direction: row; gap: 24px; }
 .card[data-ratio="landscape"] .card__verify { flex-direction: row; gap: 12px; }
 
@@ -1172,6 +1173,52 @@ main { flex: 1; }
   color: var(--card-ink-3);
   opacity: 0.4;
   font-size: 20px;
+}
+
+/* magnitude emblem + ready-for-mainnet tag (below signature) */
+.card__mag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 2px;
+  position: relative;
+  z-index: 5;
+  text-align: center;
+}
+.card__mag-logo {
+  width: 30px;
+  height: 30px;
+  color: var(--card-accent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 30%, transparent));
+  transition: color 200ms ease;
+}
+.card__mag-tag {
+  font-size: 8.5px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 500;
+  color: var(--card-ink-3);
+  line-height: 1;
+}
+/* tier color comes from the role's data-magnitude */
+.card__mag[data-magnitude="1"] .card__mag-logo { color: var(--mag-1); }
+.card__mag[data-magnitude="2"] .card__mag-logo { color: var(--mag-2); }
+.card__mag[data-magnitude="3"] .card__mag-logo { color: var(--mag-3); }
+.card__mag[data-magnitude="4"] .card__mag-logo { color: var(--mag-4); }
+.card__mag[data-magnitude="5"] .card__mag-logo { color: var(--mag-5); }
+.card__mag[data-magnitude="6"] .card__mag-logo { color: var(--mag-6); }
+.card__mag[data-magnitude="7"] .card__mag-logo { color: var(--mag-7); }
+.card__mag[data-magnitude="8"] .card__mag-logo { color: var(--mag-8); }
+.card__mag[data-magnitude="9"] .card__mag-logo { color: var(--mag-9); }
+/* tier text gets a subtle tint */
+.card__mag[data-magnitude]:not([data-magnitude=""]) .card__mag-tag {
+  color: color-mix(in srgb, var(--card-ink-3) 70%, var(--card-accent) 30%);
+}
+.card[data-theme="copper"] .card__mag[data-magnitude="7"] .card__mag-tag {
+  color: var(--mag-7);
 }
 
 /* card foot: meta + verify */
