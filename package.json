@@ -1,0 +1,14 @@
+{
+  "name": "seismic-identity",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Verified Seismic community identity card generator",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod --yes"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

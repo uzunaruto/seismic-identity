@@ -1,337 +1,408 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Seismic Signatures - Testnet identity cards</title>
-  <meta name="description" content="Mint a signed identity card on Seismic testnet. A community-driven collection, not a token. No monetary value.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0907">
+  <meta name="description" content="Verified Seismic community identity card. Discord for role verification, X for public identity. Premium Web3 membership, yours to share.">
+  <title>Seismic ID — Verified Community Identity</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0907'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23f5b56b' stroke-width='6'/%3E%3C/svg%3E">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons (web font auto-replace) -->
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to main content</a>
 
-  <div class="grain" aria-hidden="true"></div>
-
-  <header class="topbar" aria-label="Primary">
-    <div class="brand-lockup">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="22" height="22">
-          <path d="M16 2 L28 9 L28 23 L16 30 L4 23 L4 9 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M16 6 L24 10.5 L24 21.5 L16 26 L8 21.5 L8 10.5 Z" fill="none" stroke="currentColor" stroke-width="1" opacity="0.55"/>
-          <circle cx="16" cy="16" r="2.6" fill="currentColor"/>
-        </svg>
-      </span>
-      <div class="brand-text">
-        <strong>SEISMIC</strong>
-        <span>Signatures / testnet</span>
-      </div>
-    </div>
-    <nav class="nav-links" aria-label="Sections">
-      <a href="#forge">Forge</a>
-      <a href="#collection">Collection</a>
-      <a href="#manifesto">Manifesto</a>
-      <a href="#members">Members</a>
+  <!-- ============================================ -->
+  <!-- HEADER                                       -->
+  <!-- ============================================ -->
+  <header class="hdr">
+    <a href="/" class="hdr__brand" aria-label="Seismic ID home">
+      <span class="hdr__mark" aria-hidden="true"></span>
+      <span class="hdr__wordmark">SEISMIC<span class="hdr__slash">/</span>ID</span>
+    </a>
+    <nav class="hdr__nav" aria-label="Primary">
+      <a href="#verify" class="hdr__link">Verify</a>
+      <a href="#about" class="hdr__link">About</a>
+      <button type="button" id="resetBtn" class="hdr__link hdr__link--btn" hidden>Reset</button>
     </nav>
-    <div class="wallet-cluster">
-      <span class="net-pill" aria-label="Network status">
-        <i class="dot" aria-hidden="true"></i>
-        gcp-2 testnet
-      </span>
-      <button id="connectBtn" class="wallet-btn" type="button">Connect wallet</button>
-    </div>
   </header>
 
-  <main id="main">
-    <!-- HERO: split, asymmetric, left=manifesto, right=terminal -->
-    <section class="hero" id="top">
-      <div class="hero-grid">
+  <main id="app">
 
-        <aside class="hero-meta" aria-label="Hero metadata">
-          <div class="meta-row">
-            <span class="meta-key">Protocol</span>
-            <span class="meta-val">Seismic L1</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Chain ID</span>
-            <span class="meta-val mono">5124</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Currency</span>
-            <span class="meta-val">0</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Drop</span>
-            <span class="meta-val mono">SIG-00</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Phase</span>
-            <span class="meta-val">Open mint</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Minted</span>
-            <span class="meta-val mono" id="mintedCount">0000</span>
-          </div>
+    <!-- ============================================ -->
+    <!-- VIEW 1: CONNECT                              -->
+    <!-- ============================================ -->
+    <section id="view-connect" class="view view--connect" aria-labelledby="connect-title">
+      <div class="connect">
+
+        <aside class="connect__left">
+          <p class="eyebrow">Seismic Community · Identity v2</p>
+          <h1 id="connect-title" class="connect__title">
+            <span class="connect__title-line">A verified</span>
+            <span class="connect__title-line">identity,</span>
+            <span class="connect__title-line connect__title-line--accent">not just a wallet.</span>
+          </h1>
+          <p class="connect__lede">
+            Build a Seismic community card from who you actually are on the social web. Discord verifies your role, X becomes your public face. No wallet required.
+          </p>
+          <ul class="connect__pillars">
+            <li>
+              <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
+              <div>
+                <strong>Discord verifies role</strong>
+                <span>Read-only. We never post, DM, or scrape your server list.</span>
+              </div>
+            </li>
+            <li>
+              <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+              <div>
+                <strong>X is the public face</strong>
+                <span>OAuth auto-fill, or paste your own. You stay in control.</span>
+              </div>
+            </li>
+            <li>
+              <i class="ph-fill ph-fingerprint" aria-hidden="true"></i>
+              <div>
+                <strong>Yours forever</strong>
+                <span>Card lives in your browser. Export as PNG, PDF, or share to X.</span>
+              </div>
+            </li>
+          </ul>
         </aside>
 
-        <div class="hero-headline">
-          <p class="kicker">
-            <span class="kicker-num">SIG/00</span>
-            <span>Community identity, not a coin</span>
-          </p>
-          <h1 class="title">
-            Sign your handle on the
-            <em class="ink-em">privacy-enabled</em>
-            EVM chain.
-          </h1>
-          <p class="lede">
-            Each Seismic Signatures card is a one-of-one stamp tied to a wallet and a drawn signature. There is no token, no roadmap, no pre-mine. The collection lives on testnet, so the only thing you actually spend is time.
-          </p>
-          <div class="hero-cta">
-            <a class="btn btn-primary" href="#forge">Open the forge</a>
-            <a class="btn btn-ghost" href="#collection">Browse minted</a>
-          </div>
-        </div>
-
-        <figure class="hero-terminal" aria-label="Live forge telemetry">
-          <div class="terminal-head">
-            <span class="terminal-dot"></span>
-            <span class="terminal-dot dim"></span>
-            <span class="terminal-dot dim"></span>
-            <span class="terminal-title">forge://seismic/gcp-2</span>
-            <span class="terminal-stamp" id="forgeStamp">--:--:--</span>
-          </div>
-          <ol class="terminal-body" id="terminalBody" aria-live="polite">
-            <li><span class="t-prefix">[ok]</span> listening for handle submissions</li>
-            <li><span class="t-prefix">[ok]</span> signature pad attached 720x220</li>
-            <li><span class="t-prefix">[ok]</span> block height <span class="mono" id="blockHeight">querying...</span></li>
-            <li><span class="t-prefix">[ok]</span> queued stamps <span class="mono" id="queuedStamps">0</span></li>
-          </ol>
-          <div class="terminal-foot">
-            <span>tx cost est.</span>
-            <span class="mono">~0.000006 ETH</span>
-            <span>gas</span>
-            <span class="mono">60000 / 0.1 gwei</span>
-          </div>
-        </figure>
-
-      </div>
-    </section>
-
-    <!-- MARQUEE: 7 members (one marquee max) -->
-    <section class="strip" aria-label="Founding members">
-      <div class="strip-label">
-        <span>Founding members</span>
-        <span class="mono">7 of 7</span>
-      </div>
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track" id="memberMarquee">
-          <!-- populated by JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- FORGE: split-screen, preview left + controls right -->
-    <section class="forge" id="forge">
-      <header class="section-head">
-        <h2><span class="num-prefix">01</span> The forge</h2>
-        <p>Three steps. Sign the canvas, pick a card skin, claim the handle. The chain does the rest.</p>
-      </header>
-
-      <div class="forge-grid">
-        <div class="preview-pane" aria-label="Card preview">
-          <div class="card-frame">
-            <div id="cardPreview" class="identity-card theme-tremor" role="img" aria-label="Seismic Signatures card preview">
-              <div class="card-corner card-corner-tl">
-                <span class="card-eyebrow">Seismic</span>
-                <span class="card-series mono">SIG/00</span>
-              </div>
-
-              <div class="card-avatar" id="cardAvatar" aria-hidden="true">
-                <!-- generated avatar SVG injected here -->
-              </div>
-
-              <div class="card-body">
-                <div class="card-handle" id="cardHandle">@handle</div>
-                <div class="card-addr mono" id="cardAddr">0x0000...0000</div>
-                <div class="card-line"></div>
-                <div class="card-sig-wrap" id="cardSigWrap">
-                  <span class="card-sig-empty">no signature yet</span>
+        <div class="connect__right">
+          <div class="card-shell card-shell--mock" aria-hidden="true">
+            <div class="card-mock">
+              <div class="card-mock__bar"></div>
+              <div class="card-mock__top">
+                <div class="card-mock__pfp"></div>
+                <div class="card-mock__id">
+                  <div class="card-mock__name"></div>
+                  <div class="card-mock__handle"></div>
                 </div>
-                <div class="card-meta mono">
-                  <span>issued</span>
-                  <span id="cardIssued">--/--/----</span>
-                </div>
+                <div class="card-mock__check"></div>
               </div>
-
-              <div class="card-corner card-corner-br">
-                <span class="card-rarity mono">#----</span>
-                <span class="card-foot-id mono" id="cardFootId">SIG-00-0000</span>
+              <div class="card-mock__rows">
+                <div class="card-mock__row"></div>
+                <div class="card-mock__row"></div>
+                <div class="card-mock__row"></div>
+              </div>
+              <div class="card-mock__foot">
+                <div class="card-mock__sig"></div>
+                <div class="card-mock__qr"></div>
               </div>
             </div>
           </div>
 
-          <div class="theme-picker" role="radiogroup" aria-label="Card skin">
-            <button class="skin-dot skin-tremor is-active" type="button" data-theme="tremor" role="radio" aria-checked="true" aria-label="Tremor skin"></button>
-            <button class="skin-dot skin-obsidian" type="button" data-theme="obsidian" role="radio" aria-checked="false" aria-label="Obsidian skin"></button>
-            <button class="skin-dot skin-fossil" type="button" data-theme="fossil" role="radio" aria-checked="false" aria-label="Fossil skin"></button>
-            <span class="skin-label" id="skinLabel">Tremor</span>
+          <div class="connect__cta">
+            <a href="/api/discord/auth" class="btn btn--discord" id="discordBtn">
+              <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
+              <span>Connect Discord</span>
+              <span class="btn__sub">verifies role</span>
+            </a>
+            <a href="/api/x/auth" class="btn btn--x" id="xBtn">
+              <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+              <span>Connect X</span>
+              <span class="btn__sub">auto-fills profile</span>
+            </a>
+          </div>
+
+          <div class="connect__manual">
+            <details>
+              <summary>
+                <i class="ph ph-pencil-simple" aria-hidden="true"></i>
+                <span>No X account? Fill it in manually</span>
+                <i class="ph ph-caret-down" aria-hidden="true"></i>
+              </summary>
+              <form id="manualForm" class="manual-form" novalidate>
+                <div class="field">
+                  <label for="mPfp">Profile picture</label>
+                  <div class="field__pfp">
+                    <div class="field__pfp-preview" id="mPfpPreview" aria-hidden="true"></div>
+                    <div class="field__pfp-actions">
+                      <input type="url" id="mPfpUrl" placeholder="Paste image URL" autocomplete="off">
+                      <span class="field__or">or</span>
+                      <input type="file" id="mPfpFile" accept="image/*" hidden>
+                      <button type="button" class="btn btn--ghost btn--sm" id="mPfpUpload">
+                        <i class="ph ph-upload-simple" aria-hidden="true"></i> Upload
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="mName">Display name</label>
+                  <input type="text" id="mName" maxlength="32" required placeholder="Archanist">
+                </div>
+                <div class="field">
+                  <label for="mHandle">X handle</label>
+                  <div class="field__prefix">
+                    <span>@</span>
+                    <input type="text" id="mHandle" maxlength="32" required placeholder="archanisteth" pattern="[A-Za-z0-9_]+">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn--primary">
+                  <i class="ph ph-arrow-right" aria-hidden="true"></i>
+                  <span>Continue with manual profile</span>
+                </button>
+                <p class="manual-form__note">
+                  Manual profiles are marked <strong>Self-Submitted</strong>. Discord role can still attach for verification.
+                </p>
+              </form>
+            </details>
           </div>
         </div>
 
-        <div class="controls-pane" aria-label="Card controls">
+      </div>
+    </section>
 
-          <div class="control-block">
-            <div class="control-block-head">
-              <span class="step-num">01</span>
-              <h3>Handle</h3>
-              <span class="step-hint">ENS or X</span>
+    <!-- ============================================ -->
+    <!-- VIEW 2: BUILDER                              -->
+    <!-- ============================================ -->
+    <section id="view-builder" class="view view--builder" hidden aria-labelledby="builder-title">
+      <h2 id="builder-title" class="sr-only">Card builder</h2>
+
+      <div class="builder">
+
+        <!-- LEFT: FORM -->
+        <div class="builder__form">
+          <p class="eyebrow">Your card</p>
+
+          <!-- X profile status -->
+          <fieldset class="panel">
+            <legend><i class="ph-fill ph-x-logo" aria-hidden="true"></i> X identity</legend>
+            <div id="xStatus" class="status">
+              <i class="ph ph-circle-notch" aria-hidden="true"></i>
+              <span>Loading…</span>
             </div>
-            <div class="handle-row">
-              <button id="loadAvatarBtn" class="icon-btn" type="button" aria-label="Search X handle">
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                  <path d="M10.8 4a6.8 6.8 0 0 1 5.4 10.9l3.4 3.4-1.3 1.3-3.4-3.4A6.8 6.8 0 1 1 10.8 4Zm0 1.8a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z"/>
-                </svg>
+            <div class="panel__actions">
+              <button type="button" class="btn btn--ghost btn--sm" id="xEditBtn" hidden>
+                <i class="ph ph-pencil-simple" aria-hidden="true"></i> Edit
               </button>
-              <label class="field">
-                <span class="handle-prefix">@</span>
-                <input id="handleInput" type="text" maxlength="32" spellcheck="false" autocomplete="off" placeholder="yourname.eth">
-              </label>
+              <button type="button" class="btn btn--ghost btn--sm" id="xReconnectBtn" hidden>
+                <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Reconnect
+              </button>
             </div>
-            <p class="field-note">Privacy-aware: your handle is hashed before it leaves the browser.</p>
-          </div>
+          </fieldset>
 
-          <div class="control-block">
-            <div class="control-block-head">
-              <span class="step-num">02</span>
-              <h3>Signature</h3>
-              <button id="clearSigBtn" class="ghost-btn" type="button">Clear</button>
+          <!-- Discord status -->
+          <fieldset class="panel">
+            <legend><i class="ph-fill ph-discord-logo" aria-hidden="true"></i> Community verification</legend>
+            <div id="discordStatus" class="status">
+              <i class="ph ph-circle-notch" aria-hidden="true"></i>
+              <span>Loading…</span>
             </div>
-            <div class="sig-frame">
-              <canvas id="signatureCanvas" width="720" height="220" aria-label="Signature pad"></canvas>
-              <div class="sig-baseline" aria-hidden="true"></div>
+            <div class="panel__actions">
+              <button type="button" class="btn btn--ghost btn--sm" id="discordReconnectBtn" hidden>
+                <i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Reconnect
+              </button>
             </div>
-            <p class="field-note">Use finger, stylus, or mouse. Empty signatures get the default wave.</p>
-          </div>
+          </fieldset>
 
-          <div class="control-block">
-            <div class="control-block-head">
-              <span class="step-num">03</span>
-              <h3>Claim</h3>
-              <span class="step-hint">testnet</span>
+          <!-- Signature -->
+          <fieldset class="panel">
+            <legend><i class="ph ph-pen-nib" aria-hidden="true"></i> Digital signature</legend>
+            <p class="panel__hint">Draw with mouse, trackpad, or finger. Clear and retry anytime.</p>
+            <div class="sig-pad">
+              <canvas id="sigCanvas" width="640" height="200" aria-label="Signature drawing area"></canvas>
+              <div class="sig-pad__controls">
+                <button type="button" class="btn btn--ghost btn--sm" id="sigClear">
+                  <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i> Clear
+                </button>
+                <span class="sig-pad__hint" id="sigHint">Sign above</span>
+              </div>
             </div>
-            <button id="mintBtn" class="btn btn-primary btn-wide" type="button">Sign and submit</button>
-            <p class="field-note" id="statusText">no wallet connected. connect to start the claim flow.</p>
-          </div>
+          </fieldset>
+
+          <!-- Card options -->
+          <fieldset class="panel">
+            <legend><i class="ph ph-sliders-horizontal" aria-hidden="true"></i> Card options</legend>
+            <div class="opt">
+              <label for="cardTheme">Theme</label>
+              <div class="seg" role="radiogroup" id="cardTheme">
+                <button type="button" class="seg__opt is-active" data-theme="obsidian" role="radio" aria-checked="true">
+                  <span class="seg__dot" style="--c:#0a0907"></span> Obsidian
+                </button>
+                <button type="button" class="seg__opt" data-theme="copper" role="radio" aria-checked="false">
+                  <span class="seg__dot" style="--c:#d97a3c"></span> Copper
+                </button>
+                <button type="button" class="seg__opt" data-theme="fossil" role="radio" aria-checked="false">
+                  <span class="seg__dot" style="--c:#825a6d"></span> Fossil
+                </button>
+              </div>
+            </div>
+            <div class="opt">
+              <label for="cardFin">Finish</label>
+              <div class="seg" role="radiogroup" id="cardFin">
+                <button type="button" class="seg__opt is-active" data-fin="matte" role="radio" aria-checked="true">Matte</button>
+                <button type="button" class="seg__opt" data-fin="holographic" role="radio" aria-checked="false">Holographic</button>
+              </div>
+            </div>
+            <div class="opt">
+              <label for="seismicIdDisplay">Seismic ID</label>
+              <div class="opt__row">
+                <code class="opt__id" id="seismicIdDisplay">SEI-0000-0000-0000</code>
+                <button type="button" class="btn btn--ghost btn--sm" id="regenId" title="Generate new ID">
+                  <i class="ph ph-arrows-clockwise" aria-hidden="true"></i> New
+                </button>
+              </div>
+            </div>
+          </fieldset>
 
         </div>
-      </div>
-    </section>
 
-    <!-- COLLECTION: bento grid of minted cards -->
-    <section class="collection" id="collection">
-      <header class="section-head">
-        <h2><span class="num-prefix">02</span> Minted collection</h2>
-        <p>Public submissions on the gcp-2 testnet. No curation, no moderation. Each card is permanent.</p>
-      </header>
-      <div id="mintedGrid" class="minted-grid"></div>
-      <div class="pagination" id="mintedPagination" role="navigation" aria-label="Card pagination"></div>
-    </section>
+        <!-- RIGHT: PREVIEW + EXPORT -->
+        <div class="builder__preview">
+          <div class="preview-stage">
+            <div class="preview-stage__glow" aria-hidden="true"></div>
+            <article id="card" class="card" data-theme="obsidian" data-fin="matte" role="img" aria-label="Seismic community ID card preview">
+              <div class="card__noise" aria-hidden="true"></div>
+              <div class="card__holo" aria-hidden="true"></div>
 
-    <!-- MANIFESTO: editorial stack -->
-    <section class="manifesto" id="manifesto">
-      <header class="section-head">
-        <h2><span class="num-prefix">03</span> What this is, what it isn't</h2>
-      </header>
-      <div class="manifesto-grid">
-        <div class="manifesto-col">
-          <h3>Is</h3>
-          <ul>
-            <li>A free identity primitive for early Seismic users</li>
-            <li>A testnet proof of your presence on chain</li>
-            <li>A permanent record of how you signed your name</li>
-            <li>Open source, no backend, no central registry</li>
-          </ul>
-        </div>
-        <div class="manifesto-col">
-          <h3>Isn't</h3>
-          <ul>
-            <li>Not a token, not an NFT you can flip</li>
-            <li>Not connected to a roadmap or fundraising</li>
-            <li>Not a profile picture generator for X</li>
-            <li>Not affiliated with the Seismic Foundation</li>
-          </ul>
-        </div>
-        <div class="manifesto-col manifesto-side">
-          <span class="micro-label">On the record</span>
-          <p>
-            Seismic Signatures is built and run by community contributors. The contract address is published on the collection page once it is deployed to testnet. Until then, minting stores the artifact locally in your browser.
+              <header class="card__head">
+                <div class="card__brand">
+                  <span class="card__mark" aria-hidden="true"></span>
+                  <span class="card__brand-text">SEISMIC<span>/</span>ID</span>
+                </div>
+                <div class="card__seal" aria-hidden="true">
+                  <span>v2</span>
+                </div>
+              </header>
+
+              <div class="card__body">
+                <div class="card__id">
+                  <div class="card__pfp" id="cardPfp" aria-hidden="true">
+                    <i class="ph ph-user" aria-hidden="true"></i>
+                  </div>
+                  <div class="card__id-text">
+                    <div class="card__name" id="cardName">Display name</div>
+                    <div class="card__handle">
+                      <span id="cardHandle">@handle</span>
+                      <span class="card__verified" id="cardVerified" data-state="unverified" title="Verification status">
+                        <i class="ph-fill ph-seal-check" aria-hidden="true"></i>
+                        <span id="cardVerifiedLabel">Unverified</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <dl class="card__meta">
+                  <div class="card__row">
+                    <dt>Seismic ID</dt>
+                    <dd><code id="cardSeismicId">SEI-0000-0000-0000</code></dd>
+                  </div>
+                  <div class="card__row">
+                    <dt>Role</dt>
+                    <dd><span class="card__role" id="cardRole">—</span></dd>
+                  </div>
+                  <div class="card__row">
+                    <dt>Issued</dt>
+                    <dd><time id="cardIssued">2026.06.16</time></dd>
+                  </div>
+                  <div class="card__row">
+                    <dt>Network</dt>
+                    <dd>Seismic Mainnet</dd>
+                  </div>
+                </dl>
+
+                <div class="card__sig">
+                  <div class="card__sig-label">Signature</div>
+                  <div class="card__sig-canvas" id="cardSigBox">
+                    <i class="ph ph-pen-nib card__sig-placeholder" aria-hidden="true"></i>
+                  </div>
+                </div>
+
+                <div class="card__bottom">
+                  <div class="card__qr" id="cardQr" aria-hidden="true"></div>
+                  <div class="card__bottom-text">
+                    <div class="card__bottom-title">Scan to verify</div>
+                    <div class="card__bottom-sub">seismic-identity.vercel.app</div>
+                  </div>
+                </div>
+              </div>
+
+              <footer class="card__foot">
+                <span>Verified community member</span>
+                <span class="card__foot-dot" aria-hidden="true">·</span>
+                <span>Privacy-first</span>
+              </footer>
+            </article>
+          </div>
+
+          <div class="export">
+            <button type="button" class="btn btn--primary" id="exportPng">
+              <i class="ph ph-download-simple" aria-hidden="true"></i>
+              <span>Download PNG</span>
+            </button>
+            <button type="button" class="btn btn--primary" id="exportPdf">
+              <i class="ph ph-file-pdf" aria-hidden="true"></i>
+              <span>Download PDF</span>
+            </button>
+            <button type="button" class="btn btn--x-share" id="shareX">
+              <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+              <span>Share to X</span>
+            </button>
+          </div>
+
+          <p class="export__note">
+            Your card is stored locally in this browser. No data leaves your device until you export or share.
           </p>
         </div>
+
       </div>
     </section>
 
-    <!-- MEMBERS: 7 hand-crafted persona cards (asymmetric) -->
-    <section class="members" id="members">
-      <header class="section-head">
-        <h2><span class="num-prefix">04</span> Founding members</h2>
-        <p>Seismic Signatures launches with seven community-built profiles. Each one picked a skin, signed their name, and put their address on it.</p>
-      </header>
-      <div class="members-bento" id="membersBento">
-        <!-- populated by JS, 7 cells in asymmetric grid -->
-      </div>
-    </section>
+    <!-- ============================================ -->
+    <!-- VERIFY MODAL                                 -->
+    <!-- ============================================ -->
+    <dialog id="verifyDialog" class="dialog" aria-labelledby="verifyTitle">
+      <form method="dialog" class="dialog__inner">
+        <header>
+          <h3 id="verifyTitle">Verify a Seismic ID</h3>
+          <button type="button" class="dialog__close" data-close-dialog aria-label="Close">
+            <i class="ph ph-x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <p>Paste a Seismic ID to check it against this browser's records.</p>
+          <div class="field">
+            <label for="verifyInput">Seismic ID</label>
+            <input type="text" id="verifyInput" placeholder="SEI-XXXX-XXXX-XXXX" autocomplete="off">
+          </div>
+          <div id="verifyResult" class="verify-result" hidden></div>
+        </div>
+        <footer>
+          <button type="button" class="btn btn--ghost" data-close-dialog>Close</button>
+          <button type="button" class="btn btn--primary" id="verifyCheck">
+            <i class="ph ph-magnifying-glass" aria-hidden="true"></i> Check
+          </button>
+        </footer>
+      </form>
+    </dialog>
 
   </main>
 
-  <footer class="footer">
-    <div class="footer-grid">
-      <div class="footer-col">
-        <div class="brand-lockup small">
-          <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="18" height="18">
-              <path d="M16 2 L28 9 L28 23 L16 30 L4 23 L4 9 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-              <circle cx="16" cy="16" r="2.6" fill="currentColor"/>
-            </svg>
-          </span>
-          <div class="brand-text">
-            <strong>SEISMIC</strong>
-            <span>Signatures</span>
-          </div>
-        </div>
-        <p class="footer-blurb">A community-built identity card generator for the Seismic testnet. No token, no value, just a stamp.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Project</h4>
-        <a href="#forge">Forge a card</a>
-        <a href="#collection">Browse collection</a>
-        <a href="#manifesto">Manifesto</a>
-      </div>
-      <div class="footer-col">
-        <h4>Seismic</h4>
-        <a href="https://docs.seismic.systems" target="_blank" rel="noreferrer">Docs</a>
-        <a href="https://seismic.systems" target="_blank" rel="noreferrer">Main site</a>
-        <a href="https://discord.com/invite/seismic" target="_blank" rel="noreferrer">Discord</a>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <p class="footer-blurb mono">
-          SIG/00 is a testnet community drop.<br>
-          No monetary value. No affiliation with the Seismic Foundation.<br>
-          Built by community, for community.
-        </p>
-      </div>
-    </div>
-    <div class="footer-strip mono">
-      <span>seismic-signatures / v0.1.0</span>
-      <span>deployed on vercel</span>
-      <span>single page, no backend</span>
-      <span id="footerTime">--:--:--</span>
-    </div>
+  <footer class="ftr">
+    <span>Seismic ID · v2</span>
+    <span class="ftr__sep" aria-hidden="true">·</span>
+    <span>Built for the Seismic community</span>
   </footer>
 
-  <script src="./app.js" defer></script>
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js" defer></script>
 </body>
 </html>
