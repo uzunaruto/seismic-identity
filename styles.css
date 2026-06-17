@@ -752,11 +752,87 @@ main { flex: 1; }
 /* ============================================================
    STAGE (right): preview + export
    ============================================================ */
+/* === TIPS PANEL (fills empty desktop space next to the card) === */
+.builder__tips {
+  width: 100%;
+  max-width: 380px;
+  display: none; /* hidden on mobile/tablet, shown on desktop via @media below */
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 18px;
+  background: linear-gradient(160deg, rgba(245, 181, 107, 0.04) 0%, rgba(212, 194, 154, 0.06) 100%);
+  border: 1px solid rgba(245, 181, 107, 0.12);
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+}
+
+.builder__tips-title {
+  font-family: var(--font-display, serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--pp-bronze, #b88a3e);
+  margin: 0 0 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(245, 181, 107, 0.2);
+}
+
+.builder__tips-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.builder__tips-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.builder__tips-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pp-bronze, #b88a3e);
+  letter-spacing: 0.05em;
+  padding: 3px 6px;
+  background: rgba(184, 138, 62, 0.08);
+  border: 1px solid rgba(184, 138, 62, 0.2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  line-height: 1;
+  min-width: 22px;
+  text-align: center;
+}
+
+.builder__tips-list strong {
+  display: block;
+  font-family: var(--font-display, serif);
+  font-size: 13px;
+  color: var(--pp-parchment, #d4c29a);
+  margin-bottom: 3px;
+  letter-spacing: 0.01em;
+}
+
+.builder__tips-list p {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(212, 194, 154, 0.65);
+  margin: 0;
+  font-weight: 400;
+}
+
 .builder__stage {
   display: flex;
   flex-direction: column;
   gap: 24px;
   align-items: center;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
   padding-top: 4px;
   width: 100%;
   min-width: 0;
@@ -825,6 +901,7 @@ main { flex: 1; }
   width: 720px;
   height: 470px;
   overflow: hidden;
+  flex-shrink: 0;
   --pp-scale: 1;
 }
 
@@ -1048,23 +1125,43 @@ main { flex: 1; }
 /* body — portrait + fields side by side */
 .passport__body {
   flex: 1;
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 8px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   min-height: 0;
 }
 
-/* portrait with bronze filigree frame — square 1:1 for natural PFP rendering */
+/* top row: portrait + nameplate + magnitude in a horizontal row */
 .passport__portrait {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
   align-items: center;
   min-width: 0;
+  flex-shrink: 0;
+}
+.passport__nameplate {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+}
+.passport__magnitude {
+  grid-row: 1;
+  grid-column: 3;
+}
+.passport__stamps {
+  grid-row: 2;
+  grid-column: 1 / 4;
+}
+.passport__tenure {
+  grid-row: 3;
+  grid-column: 1 / 4;
 }
 .passport__portrait-frame {
   position: relative;
+  grid-row: 1;
+  grid-column: 1;
   width: 92px;
   height: 92px;
   aspect-ratio: 1 / 1;
@@ -1129,6 +1226,9 @@ main { flex: 1; }
 
 /* nameplate under portrait */
 .passport__nameplate {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
   width: 100%;
   display: flex;
   align-items: center;
@@ -1137,12 +1237,12 @@ main { flex: 1; }
   background: linear-gradient(180deg, var(--pp-ink) 0%, #1a1208 100%);
   color: var(--pp-parchment);
   font-family: var(--font-display);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
   line-height: 1.1;
-  padding: 4px 6px;
-  min-height: 20px;
+  padding: 5px 8px;
+  min-height: 24px;
   border-radius: 1px;
   text-transform: uppercase;
   box-shadow:
@@ -1155,14 +1255,17 @@ main { flex: 1; }
 }
 .passport__nameplate span { display: block; line-height: 1.1; }
 
-/* magnitude box (under nameplate) */
+/* magnitude box (right of nameplate) */
 .passport__magnitude {
-  width: 100%;
+  grid-row: 1;
+  grid-column: 3;
+  width: auto;
+  min-width: 95px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 4px 4px;
+  padding: 4px 6px;
   background: rgba(110, 79, 26, 0.12);
   border: 1px solid var(--pp-bronze-dark);
   border-radius: 2px;
@@ -1211,8 +1314,10 @@ main { flex: 1; }
   margin-top: 1px;
 }
 
-/* era stamps — passport visa style, compact 1x4 row in left column below magnitude */
+/* era stamps — passport visa style, compact 1x4 row spanning all 3 columns */
 .passport__stamps {
+  grid-row: 2;
+  grid-column: 1 / 4;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px 2px;
@@ -1285,13 +1390,16 @@ main { flex: 1; }
 
 /* citizen tenure marker */
 .passport__tenure {
+  grid-row: 3;
+  grid-column: 1 / 4;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 1px;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
-  margin-top: 5px;
-  padding-top: 5px;
+  margin-top: 4px;
+  padding-top: 4px;
   border-top: 1px solid rgba(110, 79, 26, 0.2);
 }
 .passport__tenure-label {
@@ -1312,24 +1420,30 @@ main { flex: 1; }
   line-height: 1.1;
 }
 
-/* fields column on right side of body — label-on-top, value-below for max value size */
+/* fields — 2 column × 3 row grid below the top row */
 .passport__fields {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: 14px;
+  row-gap: 4px;
   margin: 0;
-  padding: 0;
+  padding: 6px 0 0;
   font-family: var(--font-mono);
   min-width: 0;
+  flex: 1;
+  align-content: start;
 }
 .passport__field {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   border-bottom: 1px solid rgba(110, 79, 26, 0.2);
   min-width: 0;
+  overflow: hidden;
 }
+.passport__field:nth-child(odd):nth-last-child(-n+2),
 .passport__field:last-child { border-bottom: none; padding-bottom: 0; }
 .passport__field dt {
   font-size: 7px;
@@ -1893,6 +2007,37 @@ main { flex: 1; }
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+/* Desktop wide: show tips panel next to the card to fill empty space.
+   Card scales to ~0.88x so a 360px tips panel can sit beside it comfortably. */
+@media (min-width: 1280px) {
+  .builder__tips {
+    display: flex;
+    width: 340px;
+    max-width: 340px;
+    flex: 0 0 340px;
+    align-self: stretch;
+    min-height: 100%;
+  }
+  .builder__stage {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 28px;
+  }
+  .builder__stage > .preview-stage {
+    flex: 0 0 auto;
+  }
+  .builder__stage > .export {
+    flex: 0 0 100%;
+    max-width: 720px;
+  }
+  .preview-stage > .passport {
+    /* visual scale only — internal layout stays 720x470 (same as mobile).
+       This makes the card fit beside the tips panel without overflow. */
+    transform: scale(0.88);
+    transform-origin: top center;
+  }
+}
 @media (max-width: 980px) {
   .connect { grid-template-columns: 1fr; gap: 40px; }
   .connect__right { position: static; }
@@ -1906,109 +2051,35 @@ main { flex: 1; }
   .passport-mock { max-width: 300px; }
   .builder__stage { padding: 0; }
   .preview-stage { min-height: 360px; padding: 12px 8px; }
-  .passport {
-    width: 100%;
-    max-width: 480px;
-    height: auto;
-    aspect-ratio: 720 / 470;
-  }
+  /* card stays native 720x470 — no width override here, the @media (max-width: 760px)
+     below handles mobile scaling via transform: scale */
   .preview-stage__glow { display: none; }
 }
-@media (max-width: 640px) {
-  /* thinner spine so left page gets more room */
-  .passport__frame { grid-template-columns: 18px 1.15fr 0.85fr; }
-  /* reduce vertical padding on pages */
-  .passport__page--left { padding: 8px 10px 6px; }
-  .passport__page--right { padding: 8px 10px 6px; }
-  .passport__inner { gap: 4px; }
-  /* make body single column with portrait block horizontal on top + fields below */
-  .passport__body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 6px;
-  }
-  .passport__portrait {
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-  }
-  .passport__portrait-frame {
-    width: 48px;
-    height: 48px;
+@media (max-width: 760px) {
+  /* card stays at native 720x470 — we use transform: scale to fit smaller viewports.
+     This guarantees the mobile preview shows the EXACT same result as desktop:
+     same PFP size, same field widths, same timeline. */
+  .passport {
+    width: 720px !important;
+    height: 470px !important;
+    max-width: none;
+    min-width: 720px;
     flex-shrink: 0;
+    transform: scale(0.52);
+    transform-origin: top center;
   }
-  .passport__portrait-img { font-size: 18px; }
-  .passport__nameplate {
-    font-size: 8.5px;
-    letter-spacing: 0.1em;
-    flex: 1;
-    min-width: 0;
-    padding: 3px 5px;
-    min-height: 16px;
+  .preview-stage {
+    height: 250px;
+    overflow: hidden;
   }
-  .passport__magnitude {
-    gap: 2px;
-    padding: 2px 4px;
-  }
-  .passport__magnitude-label { font-size: 6.5px; letter-spacing: 0.12em; }
-  .passport__magnitude-value { font-size: 10px; }
-  .passport__gem { width: 6px; height: 6px; }
-  .passport__stamps { display: none; }
-  .passport__tenure { display: none; }
-  /* fields become 2-column on mobile to use width efficiently */
-  .passport__fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3px 8px;
-  }
-  .passport__field { padding-bottom: 2px; }
-  .passport__field dt { font-size: 6.5px; letter-spacing: 0.14em; }
-  .passport__field dd { font-size: 9.5px; }
-  .passport__field dd code { font-size: 8px; }
-  .passport__field dd a { font-size: 9.5px; }
-  /* header tighter */
-  .passport__title { font-size: 9px; }
-  .passport__subtitle { font-size: 6.5px; }
-  .passport__num { font-size: 14px; }
-  /* right page timeline */
-  .passport__timeline-title { font-size: 9px; margin: 4px 0 4px; }
-  .passport__timeline { margin-bottom: 4px; }
-  .passport__timeline li { min-height: 16px; grid-template-columns: 32px 16px 1fr; gap: 3px; }
-  .passport__tl-date { font-size: 6.5px; }
-  .passport__tl-icon { width: 16px; height: 16px; font-size: 7px; }
-  .passport__tl-name { font-size: 7px; }
-  /* footer tighter */
-  .passport__foot--left { gap: 6px; }
-  .passport__foot--right { bottom: 6px; left: 6px; right: 6px; }
-  .passport__ecosystem-empty { font-size: 6.5px; padding: 4px 8px; }
-  /* brand cap at top-right */
-  .passport__brand { gap: 4px; }
-  .passport__brand-text { font-size: 9px; }
-  .passport__brand-mark { width: 18px; height: 18px; }
 }
-@media (max-width: 480px) {
-  .passport { max-width: 100%; }
-  /* further compact */
-  .passport__frame { grid-template-columns: 14px 1.1fr 0.9fr; }
-  .passport__page--left { padding: 6px 8px 4px; }
-  .passport__page--right { padding: 6px 8px 4px; }
-  .passport__portrait-frame { width: 40px; height: 40px; }
-  .passport__portrait-img { font-size: 14px; }
-  .passport__nameplate { font-size: 8px; padding: 2px 4px; }
-  .passport__magnitude-label { font-size: 6px; }
-  .passport__magnitude-value { font-size: 9px; }
-  .passport__title { font-size: 8px; }
-  .passport__subtitle { font-size: 6px; }
-  .passport__num { font-size: 12px; }
-  .passport__fields { gap: 2px 6px; }
-  .passport__field dt { font-size: 6px; }
-  .passport__field dd { font-size: 8.5px; }
-  .passport__field dd code { font-size: 7px; }
-  .passport__field dd a { font-size: 8.5px; }
-  .passport__timeline li { grid-template-columns: 28px 14px 1fr; }
-  .passport__tl-name { font-size: 6.5px; }
-  .passport__tl-date { font-size: 6px; }
-  .passport__tl-icon { width: 14px; height: 14px; font-size: 6px; }
-  .passport__brand-text { font-size: 8px; }
-  .passport__brand-mark { width: 16px; height: 16px; }
+@media (max-width: 380px) {
+  .passport {
+    transform: scale(0.45);
+    transform-origin: top center;
+  }
+  .preview-stage {
+    height: 220px;
+  }
 }
+
