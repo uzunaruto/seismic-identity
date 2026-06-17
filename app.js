@@ -703,6 +703,17 @@ async function exportCardImage(format) {
       useCORS: true,
       allowTaint: true,
       onclone: (doc) => {
+        // RESET MOBILE/DESKTOP TRANSFORM — the live .passport uses
+        // transform: scale(0.52) on mobile / 0.88 on desktop to fit
+        // the screen. html2canvas captures the RENDERED size, so a
+        // scaled-down card would produce a 1125x735 mobile export
+        // (small + blurry text) vs 1902x1242 desktop. We force the
+        // clone to render at native 720x470 so the export is identical
+        // regardless of viewport.
+        const passport = doc.querySelector('.passport');
+        if (passport) {
+          passport.style.cssText += ';transform:none !important;transform-origin:top left !important;';
+        }
         // Force solid parchment on both pages — html2canvas loses the gradient
         // and renders the right page as transparent → black background bleed
         const left = doc.querySelector('.passport__page--left');
@@ -712,7 +723,7 @@ async function exportCardImage(format) {
         if (right) right.style.cssText += `;background:${parchment} !important;`;
         // Force frame to a flat dark color (avoids gradient edge artifacts)
         const frame = doc.querySelector('.passport__frame');
-        if (frame) frame.style.cssText += `;background:#1a1612 !important;`;
+        if (frame) frame.style.cssText += ';background:#1a1612 !important;';
         // Re-render signature into card if user drew one
         if (state.signature) {
           const sigBox = doc.getElementById('cardSig');
