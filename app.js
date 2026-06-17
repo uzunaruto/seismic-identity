@@ -674,7 +674,10 @@ function renderExport() {
 }
 
 async function exportCardImage(format) {
-  const card = document.getElementById('card');
+  // Render the frame directly instead of #card. html2canvas clips
+  // the bottom of #card due to a flex+overflow interaction in the
+  // card wrapper, but the frame renders the full 720x470 correctly.
+  const card = document.querySelector('.passport__frame');
   if (!card || !window.html2canvas) {
     toast('Image library not loaded', 'err');
     return;
@@ -686,7 +689,7 @@ async function exportCardImage(format) {
     // onclone forces solid backgrounds because html2canvas can't reliably
     // render the parchment gradient on the right page (it ends up black).
     const canvas = await html2canvas(card, {
-      backgroundColor: '#d4c29a',
+      backgroundColor: '#1a1612',
       scale: 3,
       useCORS: true,
       allowTaint: true,
