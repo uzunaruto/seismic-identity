@@ -844,10 +844,18 @@ main { flex: 1; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 0;
   min-height: 480px;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.preview-stage__inner {
+  position: relative;
+  width: 720px;
+  height: 470px;
+  transform-origin: top center;
+  flex-shrink: 0;
 }
 .preview-stage__glow {
   position: absolute;
@@ -1929,7 +1937,7 @@ main { flex: 1; }
    RESPONSIVE
    ============================================================ */
 /* Desktop wide: show tips panel next to the card to fill empty space.
-   Card scales to ~0.88x so a 360px tips panel can sit beside it comfortably. */
+   Card scales to ~0.62x so a 300px tips panel can sit beside it comfortably. */
 @media (min-width: 1280px) {
   .builder__tips {
     display: flex;
@@ -1946,27 +1954,28 @@ main { flex: 1; }
     gap: 18px;
   }
   .builder__stage > .preview-stage {
-    flex: 0 0 500px;
-    max-width: 500px;
-    min-width: 500px;
+    flex: 0 0 480px;
+    max-width: 480px;
+    min-width: 480px;
   }
   .builder__stage > .export {
     flex: 0 0 100%;
     max-width: 720px;
   }
-  .preview-stage > .passport {
-    /* visual scale only — internal layout stays 720x470 (same as mobile).
-       This makes the card fit beside the tips panel without overflow. */
+  /* visual scale only — internal layout stays 720x470 */
+  .preview-stage__inner {
     transform: scale(0.62);
     transform-origin: top center;
   }
 }
+
 @media (max-width: 980px) {
   .connect { grid-template-columns: 1fr; gap: 40px; }
   .connect__right { position: static; }
   .builder { grid-template-columns: 1fr; }
   .builder__panel { position: static; max-height: none; }
 }
+
 @media (max-width: 760px) {
   .hdr { padding: 12px 16px; }
   .connect, .builder { padding-left: 16px; padding-right: 16px; }
@@ -1974,32 +1983,20 @@ main { flex: 1; }
   .passport-mock { max-width: 300px; }
   .builder__stage { padding: 0; }
   .preview-stage { min-height: 360px; padding: 16px 8px; align-items: flex-start; }
-  /* card stays native 720x470 — no width override here, the @media (max-width: 760px)
-     below handles mobile scaling via transform: scale */
   .preview-stage__glow { display: none; }
-}
-@media (max-width: 760px) {
-  /* card stays at native 720x470 — we use transform: scale to fit smaller viewports.
-     This guarantees the mobile preview shows the EXACT same result as desktop:
-     same PFP size, same field widths, same timeline. */
-  .passport {
-    width: 720px !important;
-    height: 470px !important;
-    max-width: none;
-    min-width: 720px;
-    flex-shrink: 0;
+  /* card stays at native 720x470 — wrapper uses transform: scale to fit smaller viewports. */
+  .preview-stage__inner {
     transform: scale(0.52);
-    transform-origin: top center;
   }
   .preview-stage {
     height: 280px; /* 244px card + 16px*2 padding = 276px content need; + 4px slack */
     overflow: hidden;
   }
 }
+
 @media (max-width: 380px) {
-  .passport {
+  .preview-stage__inner {
     transform: scale(0.45);
-    transform-origin: top center;
   }
   .preview-stage {
     height: 245px; /* 212px card + extra room for glow if re-enabled */
