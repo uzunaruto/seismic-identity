@@ -627,6 +627,7 @@ function renderCard() {
   const roleText = (id && id.role) || 'Seismic Member';
   const mag = (id && id.magnitude) || null;
   roleEl.textContent = roleText;
+  roleEl.dataset.magnitude = mag ? String(mag) : '';
   if (mag) {
     magValue.textContent = String(mag);
     magEl.dataset.magnitude = String(mag);

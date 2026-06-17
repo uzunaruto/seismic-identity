@@ -21,7 +21,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 
-  <link rel="stylesheet" href="styles.css?v=6.1">
+  <link rel="stylesheet" href="styles.css?v=6.2">
 </head>
 <body>
 
@@ -407,9 +407,6 @@
                     <footer class="passport__foot passport__foot--left">
                       <div class="passport__barcode" id="cardBarcode" aria-hidden="true"></div>
                       <div class="passport__sig-stamp">
-                        <div class="passport__sig-wrap">
-                          <div class="passport__sig-script" id="cardSig">Seismic</div>
-                        </div>
                         <div class="passport__stamp" aria-hidden="true">
                           <div class="passport__stamp-ring">
                             <span>SEISMIC · CITIZEN · SEISMIC · CITIZEN ·</span>
@@ -417,6 +414,9 @@
                           <div class="passport__stamp-bird" aria-hidden="true">
                             <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 14 C7 11 9 10 12 10 C15 10 17 11 19 14 C18 16 16 17 14 17 L10 17 C8 17 6 16 5 14 Z M9 8 C9 7 10 6 11 6 C12 6 13 7 13 8 C13 9 12 9 11 9 C10 9 9 9 9 8 Z" fill="currentColor"/></svg>
                           </div>
+                        </div>
+                        <div class="passport__sig-wrap">
+                          <div class="passport__sig-script" id="cardSig">Seismic</div>
                         </div>
                       </div>
                       <div class="passport__chevrons" aria-hidden="true">»  »  »</div>
@@ -565,6 +565,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=6.0" defer></script>
+  <script src="app.js?v=6.2" defer></script>
 </body>
 </html>

@@ -1409,13 +1409,22 @@ main { flex: 1; }
    Placed AFTER .passport__row base so it wins the same-specificity cascade. */
 .passport__row--mag { display: none; }
 
-/* role / faction accent colors (purple/violet) */
+/* role uses magnitude tier color when set, falls back to ink */
 .passport__field-role {
-  color: var(--pp-purple-2) !important;
-  font-weight: 700 !important;
+  color: var(--pp-ink);
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+.passport__field-role[data-magnitude="1"] { color: var(--mag-1); }
+.passport__field-role[data-magnitude="2"] { color: var(--mag-2); }
+.passport__field-role[data-magnitude="3"] { color: var(--mag-3); }
+.passport__field-role[data-magnitude="4"] { color: var(--mag-4); }
+.passport__field-role[data-magnitude="5"] { color: var(--mag-5); }
+.passport__field-role[data-magnitude="6"] { color: var(--mag-6); }
+.passport__field-role[data-magnitude="7"] { color: var(--mag-7); }
+.passport__field-role[data-magnitude="8"] { color: var(--mag-8); }
+.passport__field-role[data-magnitude="9"] { color: var(--mag-9); }
 .passport__field-faction {
   color: var(--pp-purple-2) !important;
   font-weight: 700 !important;
@@ -1513,27 +1522,29 @@ main { flex: 1; }
   z-index: 1;
 }
 
-/* signature + stamp combined as a single unit on the right of the footer */
+/* stamp + signature combined as a single unit, pushed to the right of the footer.
+   Order is stamp first, then signature on the far right — signature is the
+   closing mark, stamp is the seal before it. */
 .passport__sig-stamp {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
   height: 100%;
-  padding: 0 6px 0 10px;
-  border-left: 1px dashed rgba(110, 79, 26, 0.28);
+  padding: 0 4px 0 0;
   border-right: 1px dashed rgba(110, 79, 26, 0.28);
 }
 
-/* signature — fills the left part of the sig-stamp group, right-aligned */
+/* signature — sits at the far right of the sig-stamp group, right-aligned */
 .passport__sig-wrap {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex: 1;
+  flex: 0 0 auto;
   min-width: 0;
+  max-width: 100px;
   height: 100%;
   pointer-events: none;
 }
