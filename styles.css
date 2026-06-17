@@ -5,29 +5,29 @@
 
 /* ---------- TOKENS ---------- */
 :root {
-  /* base */
-  --bg: #0a0907;
-  --bg-2: #110d09;
-  --surface: #15110d;
-  --surface-2: #1c1813;
-  --surface-3: #251e17;
-  --border: #2a221c;
-  --border-2: #3a2f25;
+  /* base — aged cream tua builder (warmer/darker than card parchment so card stands out) */
+  --bg: #c4b294;          /* main builder bg — warm aged cream */
+  --bg-2: #b0a082;        /* slightly deeper for shadows + depth */
+  --surface: #d8c8a8;     /* panels — lighter than bg for elevation */
+  --surface-2: #e0d2b4;   /* nested surfaces — even lighter cream */
+  --surface-3: #c8b896;   /* sunken surfaces */
+  --border: #9a8a6c;      /* deeper border for definition on cream */
+  --border-2: #7a6a50;    /* deeper still for hover/active */
 
-  /* text */
-  --ink: #f4ede4;
-  --ink-2: #c8bcae;
-  --ink-3: #998a7c;
-  --ink-4: #5a4f44;
+  /* text — dark brown ink on cream */
+  --ink: #2a1f12;         /* primary text — near-black brown */
+  --ink-2: #4a3a28;       /* secondary text */
+  --ink-3: #6a5a48;       /* tertiary text */
+  --ink-4: #8a7a68;       /* hint text */
 
-  /* accent */
-  --amber: #f5b56b;
-  --amber-2: #ffd28a;
-  --amber-dim: #a87b48;
-  --copper: #d97a3c;
-  --copper-2: #f08c47;
-  --mauve: #825a6d;
-  --fossil: #b8956a;
+  /* accent — kept warm, work on cream */
+  --amber: #d97a3c;       /* primary action — copper instead of light amber */
+  --amber-2: #e89048;
+  --amber-dim: #a85a20;
+  --copper: #b85a2a;
+  --copper-2: #d97540;
+  --mauve: #6a4a5a;
+  --fossil: #8a7558;
 
   /* seismic magnitude color scale — official Seismic brand palette */
   --mag-1: #D5D1C4; --mag-1-glow: rgba(213, 209, 196, 0.35);
@@ -59,9 +59,9 @@
   --r-2xl: 28px;
 
   /* shadows */
-  --shadow-1: 0 1px 0 rgba(255, 220, 180, 0.04) inset, 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 1px 0 rgba(255, 220, 180, 0.05) inset, 0 24px 60px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 32px 80px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-1: 0 1px 0 rgba(255, 240, 220, 0.5) inset, 0 8px 24px rgba(74, 58, 40, 0.15);
+  --shadow-2: 0 1px 0 rgba(255, 240, 220, 0.5) inset, 0 24px 60px rgba(74, 58, 40, 0.22);
+  --shadow-3: 0 32px 80px rgba(74, 58, 40, 0.28), 0 8px 24px rgba(74, 58, 40, 0.18);
   --glow-amber: 0 0 0 1px rgba(245, 181, 107, 0.18), 0 8px 48px -8px rgba(245, 181, 107, 0.35);
 
   /* type */
@@ -92,8 +92,8 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(245, 181, 107, 0.06), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(217, 122, 60, 0.05), transparent 60%);
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(184, 90, 42, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(122, 90, 64, 0.08), transparent 60%);
   pointer-events: none;
   z-index: -1;
 }
@@ -141,6 +141,12 @@ code, pre { font-family: var(--font-mono); }
   margin-left: 6px;
   text-transform: lowercase;
 }
+.panel-section__hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  margin: -8px 0 4px;
+}
 
 /* ---------- HEADER ---------- */
 .hdr {
@@ -151,7 +157,7 @@ code, pre { font-family: var(--font-mono); }
   align-items: center;
   justify-content: space-between;
   padding: 14px 28px;
-  background: rgba(10, 9, 7, 0.7);
+  background: rgba(196, 178, 148, 0.85);  /* cream tua sticky header w/ translucency */
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--border);
@@ -217,7 +223,7 @@ main { flex: 1; }
 .btn i { font-size: 18px; line-height: 1; }
 .btn--primary {
   background: var(--amber);
-  color: var(--bg);
+  color: #fff8ed;          /* cream-white on amber — readable on primary action */
 }
 .btn--primary:hover { background: var(--amber-2); }
 .btn--ghost {
@@ -669,7 +675,7 @@ main { flex: 1; }
 .seg__opt.is-active {
   background: var(--bg-2);
   color: var(--ink);
-  box-shadow: 0 1px 0 rgba(255, 220, 180, 0.05) inset, 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 240, 220, 0.4) inset, 0 4px 12px rgba(74, 58, 40, 0.18);
 }
 .seg__opt .seg__label { font-size: 12px; font-family: var(--font-mono); letter-spacing: 0.02em; }
 .seg__opt .seg__dot {
@@ -760,8 +766,8 @@ main { flex: 1; }
   flex-direction: column;
   gap: 14px;
   padding: 20px 18px;
-  background: linear-gradient(160deg, rgba(245, 181, 107, 0.04) 0%, rgba(212, 194, 154, 0.06) 100%);
-  border: 1px solid rgba(245, 181, 107, 0.12);
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-family: var(--font-mono, monospace);
 }
@@ -771,10 +777,10 @@ main { flex: 1; }
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
-  color: var(--pp-bronze, #b88a3e);
+  color: var(--amber-dim);
   margin: 0 0 4px;
   padding-bottom: 8px;
-  border-bottom: 1px dashed rgba(245, 181, 107, 0.2);
+  border-bottom: 1px dashed var(--border);
 }
 
 .builder__tips-list {
@@ -796,11 +802,11 @@ main { flex: 1; }
   font-family: var(--font-mono, monospace);
   font-size: 10px;
   font-weight: 700;
-  color: var(--pp-bronze, #b88a3e);
+  color: #fff8ed;
   letter-spacing: 0.05em;
   padding: 3px 6px;
-  background: rgba(184, 138, 62, 0.08);
-  border: 1px solid rgba(184, 138, 62, 0.2);
+  background: var(--amber);
+  border: 1px solid var(--amber-dim);
   border-radius: 3px;
   flex-shrink: 0;
   line-height: 1;
@@ -812,7 +818,7 @@ main { flex: 1; }
   display: block;
   font-family: var(--font-display, serif);
   font-size: 13px;
-  color: var(--pp-parchment, #d4c29a);
+  color: var(--ink);
   margin-bottom: 3px;
   letter-spacing: 0.01em;
 }
@@ -820,7 +826,7 @@ main { flex: 1; }
 .builder__tips-list p {
   font-size: 11.5px;
   line-height: 1.45;
-  color: rgba(212, 194, 154, 0.65);
+  color: var(--ink-3);
   margin: 0;
   font-weight: 400;
 }
@@ -1550,17 +1556,22 @@ main { flex: 1; }
 /* stamp + signature combined as a single unit, pushed to the right of the footer.
    Order is stamp first, then signature on the far right — signature is the
    closing mark, stamp is the seal before it. */
-/* sig-stamp group — sits at right side of footer, sig hugs far right edge */
+/* sig-stamp group — sits at right side of footer.
+   Layout: [stamp fixed] [4px gap] [sig fixed] — both pushed to the RIGHT of
+   the group with no space between them, so they read as a single visual
+   unit "SEISMIC · CITIZEN [stamp] [signature]" at the right edge of the
+   footer. */
 .passport__sig-stamp {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  flex: 2;          /* takes 2/3 of remaining space → pushes content to right */
+  justify-content: flex-end;       /* push stamp+sig to the right edge of the group */
+  gap: 4px;
+  flex: 0 0 auto;                  /* shrink to fit content; do not take 2/3 of footer */
   min-width: 0;
   height: 100%;
-  padding: 0 6px 0 8px;
+  padding: 0 4px 0 6px;
   border-right: 1px dashed rgba(110, 79, 26, 0.28);
+  border-left: 1px dashed rgba(110, 79, 26, 0.18);  /* subtle left edge for the group */
 }
 
 /* signature — sits at the far right of the sig-stamp group, right-aligned */
@@ -1573,7 +1584,7 @@ main { flex: 1; }
   max-width: 130px;       /* wider so signature has more room to shine */
   height: 100%;
   pointer-events: none;
-  padding-left: 4px;
+  padding-left: 0;
 }
 
 .passport__sig-script {

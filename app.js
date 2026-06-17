@@ -38,9 +38,7 @@ const defaultState = {
   finish: 'matte',   // matte | holographic
   avatar: 'circle',  // circle | squircle | hex
   border: 'minimal', // minimal | glow | stamp
-  xHandle: '',       // X @handle
-  xName: '',         // X display name (primary identity)
-  xPfp: '',          // X PFP URL (primary identity photo)
+  xHandle: '',       // X @handle (links to X profile, optional)
 };
 
 let state = loadState();
@@ -78,25 +76,27 @@ function clearAllState() {
 }
 
 // ============================================================
-// IDENTITY RESOLUTION — X is primary, Discord is verification
+// IDENTITY RESOLUTION — Discord is identity source, X is link
 // ============================================================
 // Returns the effective values shown on the card with priority:
-//   1. X (manual: state.xName/xPfp/xHandle) — user-entered, primary
-//   2. Manual identity (state.identity from connect form)
-//   3. Discord (state.identity.discordPfp, discordNick) — fallback PFP/name
-// Discord role/magnitude/joinedAt/roleIds stay on state.identity separately.
+//   1. Discord (state.identity.name/pfp/handle) — primary identity photo + name
+//   2. Manual identity (state.identity from connect form) — fallback for no-Discord
+//   3. X handle (state.xHandle) — link to X profile, optional
+// Discord role/magnitude/joinedAt/roleIds/region stay on state.identity separately.
 function getDisplayName() {
-  if (state.xName && state.xName.trim()) return state.xName.trim();
+  // Prefer Discord global_name (display name) → username → legacy name
+  if (state.identity && state.identity.discordNick) return state.identity.discordNick;
   if (state.identity && state.identity.name) return state.identity.name;
   return '';
 }
 function getDisplayPfp() {
-  if (state.xPfp && state.xPfp.trim()) return state.xPfp.trim();
+  // Discord avatar URL is the canonical photo source
   if (state.identity && state.identity.pfp) return state.identity.pfp;
   if (state.identity && state.identity.discordPfp) return state.identity.discordPfp;
   return '';
 }
 function getDisplayHandle() {
+  // X handle takes priority (links to X profile), fall back to Discord username
   if (state.xHandle && state.xHandle.trim()) return state.xHandle.trim().replace(/^@/, '');
   if (state.identity && state.identity.handle) return state.identity.handle;
   return '';
@@ -278,14 +278,21 @@ async function handleDiscordCallback() {
     const role = mag ? `Magnitude ${mag}` : (member.roles.length ? 'Seismic Member' : null);
     const joinedAt = member.joined_at ? member.joined_at.slice(0, 10) : null;
     const avatar = discordAvatarUrl(user, member);
+    // Discord name resolution: global_name (display name set by user) → username → 'Seismic Citizen'
+    // We always overwrite identity.name/pfp/handle from Discord so the card reflects the
+    // current Discord profile, not stale manual-form data.
+    const discordName = user.global_name || user.username || 'Seismic Citizen';
 
-    // Merge: only fill role/joined/region from Discord. NEVER overwrite
-    // X-sourced name/PFP/handle (those are set in the manual form or builder).
+    // Merge: Discord now IS the identity source for name/PFP/handle.
+    // Role/joined/region still come from guild membership.
     state.identity = state.identity || { source: 'discord' };
     state.identity.source = 'discord';
     state.identity.discordId = user.id;
     state.identity.discordUsername = user.username;
-    state.identity.discordNick = member.nick || null;
+    state.identity.discordNick = member.nick || user.global_name || null;
+    state.identity.name = discordName;            // ← card NAME comes from Discord
+    state.identity.handle = user.username;        // ← card HANDLE base = Discord username
+    state.identity.pfp = avatar;                  // ← card PFP comes from Discord
     state.identity.role = role;
     state.identity.roleIds = roleIds;
     state.identity.magnitude = mag;
@@ -518,38 +525,18 @@ function renderXHandleInput() {
 }
 
 function renderXIdentityInputs() {
-  // X display name input
-  const nameInput = document.getElementById('xNameInput');
-  if (nameInput) {
-    nameInput.value = state.xName || '';
-    nameInput.oninput = () => {
-      state.xName = nameInput.value.trim().slice(0, 32);
-      saveState();
-      renderCard();
-    };
-  }
-  // X PFP URL input
-  const pfpInput = document.getElementById('xPfpInput');
-  if (pfpInput) {
-    pfpInput.value = state.xPfp || '';
-    pfpInput.oninput = () => {
-      const v = pfpInput.value.trim();
-      if (v && !/^https?:\/\//i.test(v)) {
-        pfpInput.setCustomValidity('Must start with http(s)://');
-      } else {
-        pfpInput.setCustomValidity('');
-      }
-      state.xPfp = v;
-      saveState();
-      renderCard();
-    };
-  }
-  // Discord verify button label — change based on verification state
+  // The X PFP URL and X display name inputs were removed in v6.5.
+  // PFP and name now come from Discord (state.identity.pfp / state.identity.name).
+  // X handle is the only X-sourced field, handled by renderXHandleInput().
+  // This function is kept as a no-op so existing call sites don't break,
+  // and we use it for the Discord verify button label refresh.
   const verifyLabel = document.getElementById('discordVerifyLabel');
   if (verifyLabel) {
     const verified = state.identity && state.identity.roleIds && state.identity.roleIds.length;
     if (verified) {
       verifyLabel.textContent = `Re-verify Discord · ${state.identity.role}`;
+    } else {
+      verifyLabel.textContent = 'Re-verify Discord role';
     }
   }
 }
@@ -574,7 +561,7 @@ function initSignaturePad() {
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = '#2a1f12';  // dark ink — visible on cream builder bg, mirrors card ink
   }
   setup();
 
@@ -1005,6 +992,13 @@ async function exportCardImage(format) {
       pixelRatio: exportScale,
       backgroundColor: '#1a1612',
       cacheBust: true,
+      skipFonts: true,
+      // Google Fonts CSS stylesheet during export. That fetch can fail
+      // with CORS errors in some environments (private browsing, strict
+      // cookie settings, certain proxies), which would hang the entire
+      // export for 60+ seconds. We pre-load all needed font weights via
+      // document.fonts.load() above, so the SVG <foreignObject> already
+      // has them inlined. No need to re-fetch.
       // The onclone hook is also supported by html-to-image, with the
       // same fixes we had in html2canvas. Solid backgrounds, hide the
       // PFP <img> so the CSS background-image is the canonical source.

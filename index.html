@@ -21,7 +21,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 
-  <link rel="stylesheet" href="styles.css?v=6.4">
+  <link rel="stylesheet" href="styles.css?v=6.5">
 </head>
 <body>
 
@@ -43,7 +43,7 @@
       <div class="connect">
 
         <aside class="connect__left">
-          <p class="eyebrow">Seismic Community · v4</p>
+          <p class="eyebrow">Seismic Community · v6.5</p>
           <h1 id="connect-title" class="connect__title">
             <span class="connect__title-line">Your timeline,</span>
             <span class="connect__title-line connect__title-line--accent">stamped on chain.</span>
@@ -297,26 +297,19 @@
           </div>
 
           <div class="panel-section">
-            <p class="eyebrow">X handle <span class="opt-hint">primary identity</span></p>
+            <p class="eyebrow">Identity</p>
+            <p class="panel-section__hint">Photo &amp; name come from your Discord. Add your X handle so people can find you.</p>
             <div class="field">
-              <label for="xNameInput" class="field__sub">Display name (from X)</label>
-              <input type="text" id="xNameInput" maxlength="32" placeholder="Archanist" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="xPfpInput" class="field__sub">X PFP URL</label>
-              <input type="url" id="xPfpInput" placeholder="https://pbs.twimg.com/..." autocomplete="off">
-              <p class="field__hint">Right-click your X profile picture → "Copy image address".</p>
-            </div>
-            <div class="field">
-              <label for="xHandleInput" class="field__sub">@handle</label>
+              <label for="xHandleInput" class="field__sub">X handle</label>
               <div class="field__prefix">
                 <span>@</span>
                 <input type="text" id="xHandleInput" maxlength="32" placeholder="archanisteth" pattern="[A-Za-z0-9_]+" autocomplete="off">
               </div>
+              <p class="field__hint">Links to your X profile on the card. Optional but recommended.</p>
             </div>
             <button type="button" class="btn btn--ghost btn--sm" id="discordVerifyBtn" onclick="startDiscordAuth()">
               <i class="ph-fill ph-discord-logo" aria-hidden="true"></i>
-              <span id="discordVerifyLabel">Verify Discord role</span>
+              <span id="discordVerifyLabel">Re-verify Discord role</span>
             </button>
           </div>
 
@@ -571,13 +564,13 @@
   </main>
 
   <footer class="ftr">
-    <span>Seismic ID · v3</span>
+    <span>Seismic ID · v6.5</span>
     <span class="ftr__sep" aria-hidden="true">·</span>
     <span>Discord-verified, privacy-first</span>
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=6.4" defer></script>
+  <script src="app.js?v=6.5" defer></script>
 </body>
 </html>
