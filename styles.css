@@ -758,15 +758,19 @@ main { flex: 1; }
   gap: 24px;
   align-items: center;
   padding-top: 4px;
+  width: 100%;
+  min-width: 0;
 }
 .preview-stage {
   position: relative;
   width: 100%;
+  max-width: 760px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
   min-height: 480px;
+  margin: 0 auto;
 }
 .preview-stage__glow {
   position: absolute;
@@ -1910,18 +1914,101 @@ main { flex: 1; }
   }
   .preview-stage__glow { display: none; }
 }
+@media (max-width: 640px) {
+  /* thinner spine so left page gets more room */
+  .passport__frame { grid-template-columns: 18px 1.15fr 0.85fr; }
+  /* reduce vertical padding on pages */
+  .passport__page--left { padding: 8px 10px 6px; }
+  .passport__page--right { padding: 8px 10px 6px; }
+  .passport__inner { gap: 4px; }
+  /* make body single column with portrait block horizontal on top + fields below */
+  .passport__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 6px;
+  }
+  .passport__portrait {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .passport__portrait-frame {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+  .passport__portrait-img { font-size: 18px; }
+  .passport__nameplate {
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    flex: 1;
+    min-width: 0;
+    padding: 3px 5px;
+    min-height: 16px;
+  }
+  .passport__magnitude {
+    gap: 2px;
+    padding: 2px 4px;
+  }
+  .passport__magnitude-label { font-size: 6.5px; letter-spacing: 0.12em; }
+  .passport__magnitude-value { font-size: 10px; }
+  .passport__gem { width: 6px; height: 6px; }
+  .passport__stamps { display: none; }
+  .passport__tenure { display: none; }
+  /* fields become 2-column on mobile to use width efficiently */
+  .passport__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 8px;
+  }
+  .passport__field { padding-bottom: 2px; }
+  .passport__field dt { font-size: 6.5px; letter-spacing: 0.14em; }
+  .passport__field dd { font-size: 9.5px; }
+  .passport__field dd code { font-size: 8px; }
+  .passport__field dd a { font-size: 9.5px; }
+  /* header tighter */
+  .passport__title { font-size: 9px; }
+  .passport__subtitle { font-size: 6.5px; }
+  .passport__num { font-size: 14px; }
+  /* right page timeline */
+  .passport__timeline-title { font-size: 9px; margin: 4px 0 4px; }
+  .passport__timeline { margin-bottom: 4px; }
+  .passport__timeline li { min-height: 16px; grid-template-columns: 32px 16px 1fr; gap: 3px; }
+  .passport__tl-date { font-size: 6.5px; }
+  .passport__tl-icon { width: 16px; height: 16px; font-size: 7px; }
+  .passport__tl-name { font-size: 7px; }
+  /* footer tighter */
+  .passport__foot--left { gap: 6px; }
+  .passport__foot--right { bottom: 6px; left: 6px; right: 6px; }
+  .passport__ecosystem-empty { font-size: 6.5px; padding: 4px 8px; }
+  /* brand cap at top-right */
+  .passport__brand { gap: 4px; }
+  .passport__brand-text { font-size: 9px; }
+  .passport__brand-mark { width: 18px; height: 18px; }
+}
 @media (max-width: 480px) {
   .passport { max-width: 100%; }
-  .passport__title { font-size: 11px; }
-  .passport__tl-name { font-size: 9px; }
-  .passport__tl-date { font-size: 7.5px; }
-  .passport__magnitude-value { font-size: 13px; }
-  .passport__field dd { font-size: 10px; }
-  .passport__field dt { font-size: 7.5px; }
-  .passport__stamp { width: 44px; height: 44px; }
-  .passport__barcode { height: 28px; }
-  .passport__sig-script { font-size: 18px; }
-  .passport__sig-script img { height: 24px; }
-  .passport__nameplate { font-size: 9.5px; padding: 3px 4px; }
-  .passport__portrait-frame { width: 88px; height: 104px; }
+  /* further compact */
+  .passport__frame { grid-template-columns: 14px 1.1fr 0.9fr; }
+  .passport__page--left { padding: 6px 8px 4px; }
+  .passport__page--right { padding: 6px 8px 4px; }
+  .passport__portrait-frame { width: 40px; height: 40px; }
+  .passport__portrait-img { font-size: 14px; }
+  .passport__nameplate { font-size: 8px; padding: 2px 4px; }
+  .passport__magnitude-label { font-size: 6px; }
+  .passport__magnitude-value { font-size: 9px; }
+  .passport__title { font-size: 8px; }
+  .passport__subtitle { font-size: 6px; }
+  .passport__num { font-size: 12px; }
+  .passport__fields { gap: 2px 6px; }
+  .passport__field dt { font-size: 6px; }
+  .passport__field dd { font-size: 8.5px; }
+  .passport__field dd code { font-size: 7px; }
+  .passport__field dd a { font-size: 8.5px; }
+  .passport__timeline li { grid-template-columns: 28px 14px 1fr; }
+  .passport__tl-name { font-size: 6.5px; }
+  .passport__tl-date { font-size: 6px; }
+  .passport__tl-icon { width: 14px; height: 14px; font-size: 6px; }
+  .passport__brand-text { font-size: 8px; }
+  .passport__brand-mark { width: 16px; height: 16px; }
 }
