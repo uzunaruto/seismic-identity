@@ -266,7 +266,7 @@ async function handleDiscordCallback() {
   // Clear the hash so the token doesn't sit in the URL bar
   history.replaceState(null, '', window.location.pathname);
 
-  showStatus && showStatus('Scanning Discord roles…');
+  toast && toast('Scanning Discord roles…');
   try {
     const { user, member } = await fetchDiscordMember(accessToken);
     if (!member) {
