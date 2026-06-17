@@ -1506,14 +1506,15 @@ main { flex: 1; }
   z-index: 1;
 }
 
-/* signature — placed AFTER the stamp in the flex flow, so it always renders */
+/* signature — flex flow between barcode and stamp, right-aligned within its cell */
 .passport__sig-wrap {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   flex: 1;
   min-width: 0;
   height: 100%;
+  padding: 0 8px;
   pointer-events: none;
 }
 

@@ -607,9 +607,19 @@ function renderCard() {
   }
 
   // ----- PFP -----
+  // Render the avatar. We use background-image on the container
+  // (which html2canvas can render synchronously) AND an <img> tag
+  // (so the live preview is sharp and accessible). The two are kept
+  // in sync — the img provides the on-screen pixel-perfect render,
+  // the background is a fallback for the html2canvas export pipeline
+  // which sometimes struggles with <img> tags in the cloned DOM.
   if (id && id.pfp) {
+    pfp.style.backgroundImage = `url('${escapeHtml(id.pfp)}')`;
+    pfp.style.backgroundSize = 'cover';
+    pfp.style.backgroundPosition = 'center';
     pfp.innerHTML = `<img src="${escapeHtml(id.pfp)}" alt="">`;
   } else {
+    pfp.style.backgroundImage = '';
     pfp.innerHTML = '<i class="ph ph-user"></i>';
   }
 
@@ -682,6 +692,56 @@ function renderExport() {
   if (regenId) regenId.onclick = regenerateSeismicId;
 }
 
+// Convert an <img> element to a PNG data URL after waiting for it to load.
+// Returns null if the image is missing, failed to load, or is CORS-tainted.
+// Used by exportCardImage to pre-load PFP and brand logo into a format that
+// html2canvas can capture synchronously (the clone created by html2canvas
+// doesn't carry the original <img>'s load state, so any src set inside
+// onclone is loaded asynchronously and renders as a blank box).
+async function imageToDataUrl(imgEl) {
+  if (!imgEl) return null;
+  if (!imgEl.complete || imgEl.naturalWidth === 0) {
+    await new Promise((resolve) => {
+      imgEl.addEventListener('load', resolve, { once: true });
+      imgEl.addEventListener('error', resolve, { once: true });
+      setTimeout(resolve, 3000);
+    });
+  }
+  if (imgEl.naturalWidth === 0) return null;
+  try {
+    const c = document.createElement('canvas');
+    c.width  = imgEl.naturalWidth;
+    c.height = imgEl.naturalHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(imgEl, 0, 0);
+    return c.toDataURL('image/png');
+  } catch (e) {
+    // CORS-tainted canvas — return the original src as a fallback
+    return imgEl.src || null;
+  }
+}
+
+// Fetch a URL (data URL or remote) and return it as a data URL string.
+// Used for pre-loading the user-drawn signature PNG, which is stored as
+// a data URL in state.signature but may be large enough that the browser
+// hasn't fully decoded it by the time html2canvas runs.
+async function fetchAsDataUrl(url) {
+  if (!url) return null;
+  try {
+    if (url.startsWith('data:')) return url;
+    const resp = await fetch(url, { mode: 'cors' });
+    const blob = await resp.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return url; // fallback
+  }
+}
+
 async function exportCardImage(format) {
   // Pre-load all web fonts before rendering. html2canvas captures the
   // element synchronously, so if Outfit/JetBrains Mono/Caveat haven't
@@ -710,6 +770,20 @@ async function exportCardImage(format) {
     toast('Image library not loaded', 'err');
     return;
   }
+
+  // Pre-convert PFP and brand logo to PNG data URLs that are GUARANTEED
+  // to be loaded by the time html2canvas runs. Doing the drawImage+toDataURL
+  // inside onclone is too late — the browser starts loading the new src
+  // asynchronously, and html2canvas paints the clone before the load
+  // completes, producing an empty box where the avatar should be.
+  const pfpDataUrl = await imageToDataUrl(document.querySelector('#cardPfp img'));
+  const brandDataUrl = await imageToDataUrl(document.querySelector('.passport__brand-img'));
+  // Pre-load the signature PNG if the user drew one
+  let sigDataUrl = null;
+  if (state.signature) {
+    sigDataUrl = await fetchAsDataUrl(state.signature);
+  }
+
   toast('Rendering passport…', 'info');
   try {
     // Passport is 720x470 base, scale 3 = 2160x1410 (print-ready)
@@ -752,34 +826,23 @@ async function exportCardImage(format) {
         const frame = doc.querySelector('.passport__frame');
         if (frame) frame.style.cssText += ';background:#1a1612 !important;';
         // Re-render signature into card if user drew one
-        if (state.signature) {
+        if (sigDataUrl) {
           const sigBox = doc.getElementById('cardSig');
           if (sigBox) {
-            sigBox.innerHTML = `<img src="${state.signature}" style="width:100%;height:100%;object-fit:contain;display:block">`;
+            sigBox.innerHTML = `<img src="${sigDataUrl}" style="width:100%;height:100%;object-fit:contain;display:block">`;
           }
         }
-        // Ensure brand logo image is a data URL in the cloned DOM.
-        // The source page may have a cached loaded <img>, but the clone
-        // doesn't carry that state — html2canvas then renders the clone
-        // before the image loads, producing a blank spot. Drawing the
-        // source image onto a canvas and re-exporting as PNG forces the
-        // raster data to be embedded synchronously in the clone.
-        const brandImg = doc.querySelector('.passport__brand-img');
-        const srcImg = document.querySelector('.passport__brand-img');
-        if (brandImg && srcImg && srcImg.complete && srcImg.naturalWidth > 0) {
-          try {
-            const c = document.createElement('canvas');
-            c.width  = srcImg.naturalWidth;
-            c.height = srcImg.naturalHeight;
-            const ctx = c.getContext('2d');
-            ctx.drawImage(srcImg, 0, 0);
-            brandImg.src = c.toDataURL('image/png');
-          } catch (e) {
-            // canvas tainted by cross-origin — fall back to setting the
-            // same src as the original (let html2canvas try to load it)
-            brandImg.src = srcImg.src;
-          }
-        }
+        // PFP is rendered as BOTH a CSS background-image AND an <img>
+        // on the live DOM (background for html2canvas compatibility,
+        // img for sharp on-screen rendering). The html2canvas clone
+        // captures the <img> inconsistently — sometimes it rasterizes
+        // before the new src finishes loading, leaving an empty box.
+        // The background-image IS captured reliably, so we hide the
+        // <img> in the clone to prevent visual fighting and let the
+        // background be the canonical source of truth.
+        doc.querySelectorAll('#cardPfp img').forEach(img => {
+          img.style.setProperty('display', 'none', 'important');
+        });
       },
     });
     if (format === 'png') {
