@@ -1139,9 +1139,20 @@ main { flex: 1; }
 .passport__brand-text {
   font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 800;
+  letter-spacing: 0.2em;
   line-height: 1;
+  /* metallic gradient — premium passport foil */
+  background: linear-gradient(180deg,
+    #f5d97a 0%,
+    var(--pp-bronze) 35%,
+    var(--pp-copper) 70%,
+    #6e4f1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 0 0.5px rgba(110, 79, 26, 0.6);
 }
 
 /* body — portrait + fields side by side */
@@ -1352,7 +1363,12 @@ main { flex: 1; }
   font-family: var(--font-mono);
 }
 .passport__row-value a {
-  color: var(--pp-purple-2);
+  /* electric teal — futuristic Web3 identity link color */
+  background: linear-gradient(135deg, #0ea5b7 0%, #14b8a6 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   text-decoration: none;
   font-weight: 700;
   font-size: 11px;
@@ -1361,6 +1377,8 @@ main { flex: 1; }
   text-overflow: ellipsis;
   display: inline-block;
   max-width: 100%;
+  /* fallback for export tools that don't support background-clip */
+  filter: drop-shadow(0 0 0.3px #0a4f5c);
 }
 
 /* magnitude row — tier-colored left accent stripe + prominent number */
@@ -1426,10 +1444,16 @@ main { flex: 1; }
 .passport__field-role[data-magnitude="8"] { color: var(--mag-8); }
 .passport__field-role[data-magnitude="9"] { color: var(--mag-9); }
 .passport__field-faction {
-  color: var(--pp-purple-2) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1em;
+  /* metallic bronze — matches SEISMIC brand wordmark */
+  background: linear-gradient(135deg, #d4a857 0%, var(--pp-bronze) 45%, var(--pp-copper) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  filter: drop-shadow(0 0 0.3px rgba(110, 79, 26, 0.5));
 }
 .passport__flag {
   display: inline-flex;
@@ -1470,7 +1494,7 @@ main { flex: 1; }
 }
 /* barcode will be filled by JS with random widths */
 
-/* circular stamp */
+/* circular stamp — copper/bronze seal, ties into the metallic brand */
 .passport__stamp {
   position: relative;
   width: 56px;
@@ -1480,8 +1504,9 @@ main { flex: 1; }
   align-items: center;
   justify-content: center;
   transform: rotate(-8deg);
-  color: var(--pp-purple-2);
-  opacity: 0.78;
+  color: #8b3a1a;
+  opacity: 0.82;
+  filter: drop-shadow(0 0 0.5px rgba(139, 58, 26, 0.35));
 }
 .passport__stamp-ring {
   position: absolute;
@@ -1525,15 +1550,16 @@ main { flex: 1; }
 /* stamp + signature combined as a single unit, pushed to the right of the footer.
    Order is stamp first, then signature on the far right — signature is the
    closing mark, stamp is the seal before it. */
+/* sig-stamp group — sits at right side of footer, sig hugs far right edge */
 .passport__sig-stamp {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  flex: 1;
+  gap: 6px;
+  flex: 2;          /* takes 2/3 of remaining space → pushes content to right */
   min-width: 0;
   height: 100%;
-  padding: 0 4px 0 0;
+  padding: 0 6px 0 8px;
   border-right: 1px dashed rgba(110, 79, 26, 0.28);
 }
 
@@ -1544,9 +1570,10 @@ main { flex: 1; }
   justify-content: flex-end;
   flex: 0 0 auto;
   min-width: 0;
-  max-width: 100px;
+  max-width: 130px;       /* wider so signature has more room to shine */
   height: 100%;
   pointer-events: none;
+  padding-left: 4px;
 }
 
 .passport__sig-script {
