@@ -820,6 +820,7 @@ main { flex: 1; }
   position: relative;
   width: 720px;
   height: 470px;
+  overflow: hidden;
   --pp-scale: 1;
 }
 
@@ -931,6 +932,7 @@ main { flex: 1; }
   gap: 10px;
   position: relative;
   z-index: 2;
+  min-height: 0;
 }
 
 /* paper grain (SVG data URI) */
