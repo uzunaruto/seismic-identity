@@ -1948,7 +1948,7 @@ main { flex: 1; }
   .connect__title { font-size: 38px; }
   .passport-mock { max-width: 300px; }
   .builder__stage { padding: 0; }
-  .preview-stage { min-height: 360px; padding: 16px 8px; }
+  .preview-stage { min-height: 360px; padding: 16px 8px; align-items: flex-start; }
   /* card stays native 720x470 — no width override here, the @media (max-width: 760px)
      below handles mobile scaling via transform: scale */
   .preview-stage__glow { display: none; }
