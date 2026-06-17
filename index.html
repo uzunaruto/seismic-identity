@@ -350,7 +350,7 @@
                     </header>
 
                     <div class="passport__body">
-                      <div class="passport__portrait">
+                      <div class="passport__top">
                         <div class="passport__portrait-frame">
                           <div class="passport__portrait-img" id="cardPfp">
                             <i class="ph ph-user"></i>
@@ -358,80 +358,46 @@
                         </div>
                         <div class="passport__nameplate">
                           <span id="cardName">NAME</span>
-                        </div>
-                        <div class="passport__magnitude" id="cardMagnitude" data-magnitude="">
-                          <span class="passport__gem passport__gem--purple" aria-hidden="true"></span>
-                          <div class="passport__magnitude-text">
-                            <span class="passport__magnitude-label">MAGNITUDE</span>
-                            <span class="passport__magnitude-value" id="cardMagnitudeValue">—</span>
-                          </div>
-                          <span class="passport__gem passport__gem--gold" aria-hidden="true"></span>
-                        </div>
-
-                        <div class="passport__stamps" aria-label="Seismic era stamps">
-                          <div class="passport__stamp-item">
-                            <div class="passport__stamp-circle">
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M208 40H48a16 16 0 0 0-16 16v128a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16Zm0 144H48V56h160v128Zm-28 24H72a8 8 0 0 0-8 8 24 24 0 0 0 24 24h80a24 24 0 0 0 24-24 8 8 0 0 0-8-8Z"/></svg>
-                            </div>
-                            <span class="passport__stamp-name">GENESIS</span>
-                            <span class="passport__stamp-date">'25</span>
-                          </div>
-                          <div class="passport__stamp-item">
-                            <div class="passport__stamp-circle passport__stamp-circle--gold">
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M120 24 24 120l96 96 96-96L120 24Zm0 40 56 56-56 56-56-56 56-56Z"/></svg>
-                            </div>
-                            <span class="passport__stamp-name">A16Z</span>
-                            <span class="passport__stamp-date">'25</span>
-                          </div>
-                          <div class="passport__stamp-item">
-                            <div class="passport__stamp-circle">
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><circle cx="120" cy="120" r="44"/><circle cx="120" cy="120" r="20" fill="#d4c29a"/><ellipse cx="120" cy="120" rx="100" ry="40" fill="none" stroke="currentColor" stroke-width="14"/><ellipse cx="120" cy="120" rx="100" ry="40" fill="none" stroke="currentColor" stroke-width="14" transform="rotate(60 120 120)"/><ellipse cx="120" cy="120" rx="100" ry="40" fill="none" stroke="currentColor" stroke-width="14" transform="rotate(120 120 120)"/></svg>
-                            </div>
-                            <span class="passport__stamp-name">DEVNET</span>
-                            <span class="passport__stamp-date">'25</span>
-                          </div>
-                          <div class="passport__stamp-item">
-                            <div class="passport__stamp-circle passport__stamp-circle--gold">
-                              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M144 96V32H96v64H32v64h64v32h-32v32h96v-32h-32v-32h64V96h-48Zm-32 32h-32v-32h32v32Z"/></svg>
-                            </div>
-                            <span class="passport__stamp-name">PUBLIC</span>
-                            <span class="passport__stamp-date">'26</span>
-                          </div>
-                        </div>
-
-                        <div class="passport__tenure" aria-label="Member tenure">
-                          <span class="passport__tenure-label">CITIZEN SINCE</span>
-                          <span class="passport__tenure-value" id="cardTenure">—</span>
+                          <span class="passport__handle" id="cardHandleInline">@handle</span>
                         </div>
                       </div>
 
-                      <dl class="passport__fields">
-                        <div class="passport__field">
-                          <dt>Role</dt>
-                          <dd id="cardRole" class="passport__field-role">Seismic Member</dd>
+                      <dl class="passport__list">
+                        <div class="passport__row passport__row--mag" id="cardMagnitude" data-magnitude="">
+                          <span class="passport__row-label">MAGNITUDE</span>
+                          <span class="passport__row-value passport__row-mag-value">
+                            <span class="passport__row-mag-num" id="cardMagnitudeValue">—</span>
+                            <span class="passport__row-mag-tier" id="cardMagnitudeTier">TIER</span>
+                          </span>
                         </div>
-                        <div class="passport__field">
-                          <dt>Faction</dt>
-                          <dd class="passport__field-faction">SEISMIC</dd>
+                        <div class="passport__row">
+                          <span class="passport__row-label">ROLE</span>
+                          <span class="passport__row-value passport__field-role" id="cardRole">Seismic Member</span>
                         </div>
-                        <div class="passport__field">
-                          <dt>Joined</dt>
-                          <dd id="cardJoined">— · — · —</dd>
+                        <div class="passport__row">
+                          <span class="passport__row-label">FACTION</span>
+                          <span class="passport__row-value passport__field-faction">SEISMIC</span>
                         </div>
-                        <div class="passport__field">
-                          <dt>Region</dt>
-                          <dd id="cardRegion">
+                        <div class="passport__row">
+                          <span class="passport__row-label">JOINED</span>
+                          <span class="passport__row-value" id="cardJoined">— · — · —</span>
+                        </div>
+                        <div class="passport__row">
+                          <span class="passport__row-label">REGION</span>
+                          <span class="passport__row-value">
                             <span class="passport__flag" id="cardFlag">🌐</span>
                             <span id="cardRegionName">EARTH</span>
-                          </dd>
+                          </span>
                         </div>
-                        <div class="passport__field">
-                          <dt>Passport ID</dt>
-                          <dd><code id="cardSeismicId">SEI-0000-0000-0000</code></dd>
+                        <div class="passport__row">
+                          <span class="passport__row-label">PASSPORT ID</span>
+                          <span class="passport__row-value"><code id="cardSeismicId">SEI-0000-0000-0000</code></span>
                         </div>
-                        <div class="passport__field">
-                          <dt>X Handle</dt>
-                          <dd><a id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a></dd>
+                        <div class="passport__row">
+                          <span class="passport__row-label">X HANDLE</span>
+                          <span class="passport__row-value">
+                            <a id="cardHandle" href="#" target="_blank" rel="noopener noreferrer">@handle</a>
+                          </span>
                         </div>
                       </dl>
                     </div>

@@ -600,6 +600,11 @@ function renderCard() {
     handle.textContent = '— not set —';
     handle.href = '#';
   }
+  // inline handle inside nameplate (compact display)
+  const handleInline = document.getElementById('cardHandleInline');
+  if (handleInline) {
+    handleInline.textContent = effectiveHandle ? '@' + effectiveHandle : '— not connected —';
+  }
 
   // ----- PFP -----
   if (id && id.pfp) {
@@ -615,9 +620,13 @@ function renderCard() {
   if (mag) {
     magValue.textContent = String(mag);
     magEl.dataset.magnitude = String(mag);
+    const tierEl = document.getElementById('cardMagnitudeTier');
+    if (tierEl) tierEl.textContent = 'TIER ' + String(mag);
   } else {
     magValue.textContent = '—';
     magEl.dataset.magnitude = '';
+    const tierEl = document.getElementById('cardMagnitudeTier');
+    if (tierEl) tierEl.textContent = 'UNRANKED';
   }
 
   // ----- JOINED -----
