@@ -1946,8 +1946,9 @@ main { flex: 1; }
     gap: 18px;
   }
   .builder__stage > .preview-stage {
-    flex: 0 1 auto;
-    max-width: 100%;
+    flex: 0 0 500px;
+    max-width: 500px;
+    min-width: 500px;
   }
   .builder__stage > .export {
     flex: 0 0 100%;
