@@ -766,15 +766,15 @@ async function exportCardImage(format) {
   // the bottom of #card due to a flex+overflow interaction in the
   // card wrapper, but the frame renders the full 720x470 correctly.
   const card = document.querySelector('.passport__frame');
-  if (!card || !window.html2canvas) {
-    toast('Image library not loaded', 'err');
+  if (!card) {
+    toast('Card not found', 'err');
     return;
   }
 
   // Pre-convert PFP and brand logo to PNG data URLs that are GUARANTEED
-  // to be loaded by the time html2canvas runs. Doing the drawImage+toDataURL
+  // to be loaded by the time the export runs. Doing the drawImage+toDataURL
   // inside onclone is too late — the browser starts loading the new src
-  // asynchronously, and html2canvas paints the clone before the load
+  // asynchronously, and the clone is rasterized before the load
   // completes, producing an empty box where the avatar should be.
   const pfpDataUrl = await imageToDataUrl(document.querySelector('#cardPfp img'));
   const brandDataUrl = await imageToDataUrl(document.querySelector('.passport__brand-img'));
@@ -786,87 +786,77 @@ async function exportCardImage(format) {
 
   toast('Rendering passport…', 'info');
   try {
-    // Passport is 720x470 base. We render at scale 1 (720x470 canvas)
-    // then upscale to 3x via Canvas API for print-quality output.
-    // WHY scale 1 + manual upscale instead of scale 3:
-    //   - scale 3 with width/height options causes html2canvas to
-    //     place elements at scaled-up positions from the live DOM,
-    //     shifting content off-canvas (right page renders as black).
-    //   - scale 3 with transform reset (old approach) silently drops
-    //     data row text from the export because html2canvas fails to
-    //     relayout flex children after a transform reset.
-    //   - scale 1 captures the element at its DECLARED 720x470 size
-    //     with correct text positions; manual 3x upscale preserves
-    //     sharpness (imageSmoothingQuality=high, bicubic).
-    // We need an opaque background because the spine + frame are dark.
-    const canvas1x = await html2canvas(card, {
+    // Export via html-to-image (SVG foreignObject rasterizer).
+    //
+    // Why we switched from html2canvas → html-to-image:
+    //   html2canvas v1.x CANNOT reliably produce a true 3x export of this
+    //   passport layout. Three approaches all broke:
+    //     - scale:3 + width:720/height:470 → elements positioned using
+    //       live-DOM coordinates (transform: scale(0.88) on desktop,
+    //       scale(0.52) on mobile) end up shifted off-canvas. Right page
+    //       rendered as black, data rows lost.
+    //     - scale:3 + transform reset in onclone → silently dropped flex
+    //       children from the rasterized output (data row text missing).
+    //     - scale:1 + width/height + manual 3x Canvas API upscale →
+    //       produces correct 2160x1410 PNG, but the upscale smooths the
+    //       720x470 source so the file looks "blurry" at 1:1 pixel zoom
+    //       (1.1MB file with 720x470 worth of real detail stretched over
+    //       2160x1410 area). User feedback: "download perkecil dan blur".
+    //
+    //   html-to-image uses SVG <foreignObject> with the browser's native
+    //   renderer, so pixelRatio: 3 produces TRUE 3x pixels at the
+    //   declared 720x470 size (2160x1410 = 4.6MB), identical regardless
+    //   of viewport. No transform, no upscale, no position math bugs.
+    //
+    // canvas is needed for jsPDF embedding (jsPDF.addImage takes canvas,
+    // not data URL). html-to-image also returns a canvas if requested.
+    const exportScale = format === 'pdf' ? 3 : 3; // 3x for both PNG and PDF
+    const blob = await htmlToImage.toBlob(card, {
+      pixelRatio: exportScale,
       backgroundColor: '#1a1612',
-      scale: 1,
-      width: 720,
-      height: 470,
-      useCORS: true,
-      allowTaint: true,
+      cacheBust: true,
+      // The onclone hook is also supported by html-to-image, with the
+      // same fixes we had in html2canvas. Solid backgrounds, hide the
+      // PFP <img> so the CSS background-image is the canonical source.
       onclone: (doc) => {
-        // NO transform reset — see comment above. Live layout
-        // positions are what html2canvas uses to place elements.
-        // Disable subpixel font smoothing on the clone so render is
-        // consistent between devices. Without this, mobile (CrispEdges)
-        // and desktop (SubpixelAntialiased) produce visibly different
-        // glyphs that cause the "kacau" complaint.
         const all = doc.querySelectorAll('*');
         all.forEach(el => {
           el.style.cssText += ';-webkit-font-smoothing:antialiased !important;-moz-osx-font-smoothing:grayscale !important;text-rendering:geometricPrecision !important;';
         });
-        // Force solid parchment on both pages — html2canvas loses the gradient
-        // and renders the right page as transparent → black background bleed
         const left = doc.querySelector('.passport__page--left');
         const right = doc.querySelector('.passport__page--right');
         const parchment = '#d4c29a';
         if (left)  left.style.cssText  += `;background:${parchment} !important;`;
         if (right) right.style.cssText += `;background:${parchment} !important;`;
-        // Force frame to a flat dark color (avoids gradient edge artifacts)
         const frame = doc.querySelector('.passport__frame');
         if (frame) frame.style.cssText += ';background:#1a1612 !important;';
-        // Re-render signature into card if user drew one
         if (sigDataUrl) {
           const sigBox = doc.getElementById('cardSig');
           if (sigBox) {
             sigBox.innerHTML = `<img src="${sigDataUrl}" style="width:100%;height:100%;object-fit:contain;display:block">`;
           }
         }
-        // PFP is rendered as BOTH a CSS background-image AND an <img>
-        // on the live DOM (background for html2canvas compatibility,
-        // img for sharp on-screen rendering). The html2canvas clone
-        // captures the <img> inconsistently — sometimes it rasterizes
-        // before the new src finishes loading, leaving an empty box.
-        // The background-image IS captured reliably, so we hide the
-        // <img> in the clone to prevent visual fighting and let the
-        // background be the canonical source of truth.
         doc.querySelectorAll('#cardPfp img').forEach(img => {
           img.style.setProperty('display', 'none', 'important');
         });
       },
     });
-    // Upscale 1x canvas to 3x via Canvas API for print-quality output.
-    // This preserves text positions from the 1x capture and gives a
-    // pixel-identical 2160x1410 PNG regardless of viewport.
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas1x.width * 3;
-    canvas.height = canvas1x.height * 3;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(canvas1x, 0, 0, canvas.width, canvas.height);
+
+    // Convert blob to canvas (for jsPDF) and data URL (for direct download).
+    const canvas = await blobToCanvas(blob);
     if (format === 'png') {
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.download = `${state.seismicId || 'seismic-passport'}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = url;
       link.click();
+      // Free the blob URL after the download is initiated.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
       toast('PNG downloaded', 'ok');
     } else if (format === 'pdf') {
       if (!window.jspdf) { toast('PDF library not loaded', 'err'); return; }
       const { jsPDF } = window.jspdf;
-      // passport is always landscape (720x470)
+      // Passport is always landscape (2160x1410 at 3x)
       const pdf = new jsPDF({
         orientation: 'l',
         unit: 'px',
@@ -881,6 +871,19 @@ async function exportCardImage(format) {
     console.error('Export failed:', e);
     toast('Export failed', 'err');
   }
+}
+
+// Convert a Blob to an HTMLCanvasElement (used by PDF export path).
+// Required because jsPDF.addImage needs a canvas / data URL, but
+// html-to-image's native return type is a Blob.
+async function blobToCanvas(blob) {
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0);
+  return canvas;
 }
 
 function shareToX() {
