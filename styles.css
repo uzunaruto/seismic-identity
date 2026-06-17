@@ -1625,7 +1625,9 @@ main { flex: 1; }
   align-items: center;
   justify-content: center;
   line-height: 1;
-  margin-top: 1px;
+  /* Phosphor icons have inconsistent optical centers — shift up
+     slightly so glyph optical center matches hexagon center. */
+  transform: translateY(-1px);
 }
 
 .passport__tl-name {
