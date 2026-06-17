@@ -1968,8 +1968,12 @@ main { flex: 1; }
     min-width: 480px;
   }
   .builder__stage > .export {
+    /* Force export onto its own line in the flex row (desktop only).
+       The preview-stage + tips take ~800px, and export is 720px max —
+       putting it beside them would overflow the 832px stage. */
     flex: 0 0 100%;
-    max-width: 720px;
+    max-width: 100%;
+    margin-top: 8px;
   }
   /* visual scale only — passport card stays at 720x470 but is positioned
      absolute inside the 446x291 inner wrapper. The inner is 720*0.62 wide
