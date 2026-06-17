@@ -786,27 +786,29 @@ async function exportCardImage(format) {
 
   toast('Rendering passport…', 'info');
   try {
-    // Passport is 720x470 base, scale 3 = 2160x1410 (print-ready)
+    // Passport is 720x470 base. We render at scale 1 (720x470 canvas)
+    // then upscale to 3x via Canvas API for print-quality output.
+    // WHY scale 1 + manual upscale instead of scale 3:
+    //   - scale 3 with width/height options causes html2canvas to
+    //     place elements at scaled-up positions from the live DOM,
+    //     shifting content off-canvas (right page renders as black).
+    //   - scale 3 with transform reset (old approach) silently drops
+    //     data row text from the export because html2canvas fails to
+    //     relayout flex children after a transform reset.
+    //   - scale 1 captures the element at its DECLARED 720x470 size
+    //     with correct text positions; manual 3x upscale preserves
+    //     sharpness (imageSmoothingQuality=high, bicubic).
     // We need an opaque background because the spine + frame are dark.
-    // onclone forces solid backgrounds because html2canvas can't reliably
-    // render the parchment gradient on the right page (it ends up black).
-    const canvas = await html2canvas(card, {
+    const canvas1x = await html2canvas(card, {
       backgroundColor: '#1a1612',
-      scale: 3,
+      scale: 1,
+      width: 720,
+      height: 470,
       useCORS: true,
       allowTaint: true,
       onclone: (doc) => {
-        // RESET MOBILE/DESKTOP TRANSFORM — the live .passport uses
-        // transform: scale(0.52) on mobile / 0.88 on desktop to fit
-        // the screen. html2canvas captures the RENDERED size, so a
-        // scaled-down card would produce a 1125x735 mobile export
-        // (small + blurry text) vs 1902x1242 desktop. We force the
-        // clone to render at native 720x470 so the export is identical
-        // regardless of viewport.
-        const passport = doc.querySelector('.passport');
-        if (passport) {
-          passport.style.cssText += ';transform:none !important;transform-origin:top left !important;';
-        }
+        // NO transform reset — see comment above. Live layout
+        // positions are what html2canvas uses to place elements.
         // Disable subpixel font smoothing on the clone so render is
         // consistent between devices. Without this, mobile (CrispEdges)
         // and desktop (SubpixelAntialiased) produce visibly different
@@ -845,6 +847,16 @@ async function exportCardImage(format) {
         });
       },
     });
+    // Upscale 1x canvas to 3x via Canvas API for print-quality output.
+    // This preserves text positions from the 1x capture and gives a
+    // pixel-identical 2160x1410 PNG regardless of viewport.
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas1x.width * 3;
+    canvas.height = canvas1x.height * 3;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(canvas1x, 0, 0, canvas.width, canvas.height);
     if (format === 'png') {
       const link = document.createElement('a');
       link.download = `${state.seismicId || 'seismic-passport'}.png`;

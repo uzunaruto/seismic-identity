@@ -1315,25 +1315,27 @@ main { flex: 1; }
 }
 .passport__row:last-child { border-bottom: none; }
 .passport__row-label {
-  font-size: 8.5px;
-  letter-spacing: 0.14em;
+  font-size: 9.5px;          /* was 8.5 — too tiny in 3x export, looked invisible */
+  letter-spacing: 0.12em;     /* tightened from 0.14 since font is bigger */
   color: var(--pp-ink);
   text-transform: uppercase;
-  font-weight: 700;
-  line-height: 1;
+  font-weight: 800;          /* was 700 — heavier weight renders better at small sizes */
+  line-height: 1.1;          /* was 1 — needed headroom for descenders + better readability */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
-  opacity: 0.78;
+  opacity: 1;                /* was 0.78 — was making labels fade into parchment */
+  -webkit-text-stroke: 0.3px var(--pp-ink);  /* subtle stroke = crisp at any scale */
+  text-stroke: 0.3px var(--pp-ink);
 }
 .passport__row-value {
-  font-size: 11px;
+  font-size: 12px;           /* was 11 — also bumped for 3x export legibility */
   color: var(--pp-ink);
   font-weight: 700;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;         /* was hidden + ellipsis — would clip long values */
+  text-overflow: clip;       /* was ellipsis */
   line-height: 1.1;
   min-width: 0;
   display: flex;
@@ -1342,7 +1344,7 @@ main { flex: 1; }
   margin: 0;
 }
 .passport__row-value code {
-  font-size: 10.5px;
+  font-size: 11.5px;          /* was 10.5 */
   letter-spacing: 0.04em;
   color: var(--pp-ink);
   background: transparent;
