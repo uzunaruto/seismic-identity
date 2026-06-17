@@ -852,10 +852,19 @@ main { flex: 1; }
 
 .preview-stage__inner {
   position: relative;
+  width: 446px;  /* 720 * 0.62 = scaled width on desktop */
+  height: 291px; /* 470 * 0.62 = scaled height on desktop */
+  transform-origin: top left;
+  flex-shrink: 0;
+}
+
+.preview-stage__inner > .passport {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 720px;
   height: 470px;
-  transform-origin: top center;
-  flex-shrink: 0;
+  transform-origin: top left;
 }
 .preview-stage__glow {
   position: absolute;
@@ -1962,10 +1971,15 @@ main { flex: 1; }
     flex: 0 0 100%;
     max-width: 720px;
   }
-  /* visual scale only — internal layout stays 720x470 */
+  /* visual scale only — passport card stays at 720x470 but is positioned
+     absolute inside the 446x291 inner wrapper. The inner is 720*0.62 wide
+     so it fits cleanly in the 480px preview-stage. */
   .preview-stage__inner {
+    width: 446px;  /* 720 * 0.62 */
+    height: 291px; /* 470 * 0.62 */
+  }
+  .preview-stage__inner > .passport {
     transform: scale(0.62);
-    transform-origin: top center;
   }
 }
 
@@ -1986,6 +2000,10 @@ main { flex: 1; }
   .preview-stage__glow { display: none; }
   /* card stays at native 720x470 — wrapper uses transform: scale to fit smaller viewports. */
   .preview-stage__inner {
+    width: 374px;  /* 720 * 0.52 */
+    height: 244px; /* 470 * 0.52 */
+  }
+  .preview-stage__inner > .passport {
     transform: scale(0.52);
   }
   .preview-stage {
@@ -1996,6 +2014,10 @@ main { flex: 1; }
 
 @media (max-width: 380px) {
   .preview-stage__inner {
+    width: 324px;  /* 720 * 0.45 */
+    height: 212px; /* 470 * 0.45 */
+  }
+  .preview-stage__inner > .passport {
     transform: scale(0.45);
   }
   .preview-stage {
