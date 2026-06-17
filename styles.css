@@ -1506,31 +1506,36 @@ main { flex: 1; }
   z-index: 1;
 }
 
-/* signature */
+/* signature — placed AFTER the stamp in the flex flow, so it always renders */
 .passport__sig-wrap {
-  position: absolute;
-  bottom: 8px;
-  right: 18px;
   display: flex;
-  align-items: end;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   pointer-events: none;
 }
 
 .passport__sig-script {
   font-family: 'Caveat', 'Brush Script MT', cursive;
-  font-size: 16px;
-  color: var(--pp-purple-2);
+  font-size: 18px;
+  color: var(--pp-ink);
   line-height: 1;
-  transform: rotate(-6deg);
-  opacity: 0.85;
+  transform: rotate(-4deg);
+  opacity: 0.9;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .passport__sig-script img {
-  height: 22px;
+  height: 24px;
   width: auto;
-  max-width: 100%;
+  max-width: 90px;
   display: block;
-  transform: rotate(-6deg);
+  transform: rotate(-4deg);
   transform-origin: center;
   filter: contrast(1.2) saturate(0.6) sepia(0.2);
 }
