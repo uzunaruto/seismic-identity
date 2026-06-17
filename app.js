@@ -683,6 +683,25 @@ function renderExport() {
 }
 
 async function exportCardImage(format) {
+  // Pre-load all web fonts before rendering. html2canvas captures the
+  // element synchronously, so if Outfit/JetBrains Mono/Caveat haven't
+  // finished loading it falls back to a system font that looks very
+  // different (this was the #1 cause of "kacau" mobile vs desktop
+  // exports — the fallback was rendering at a different size/weight).
+  try {
+    await document.fonts.ready;
+    // Force-load the specific font weights we use
+    await Promise.all([
+      document.fonts.load('700 32px "Outfit"'),
+      document.fonts.load('600 18px "Outfit"'),
+      document.fonts.load('500 14px "Outfit"'),
+      document.fonts.load('400 12px "Outfit"'),
+      document.fonts.load('600 12px "JetBrains Mono"'),
+      document.fonts.load('500 11px "JetBrains Mono"'),
+      document.fonts.load('700 28px "Caveat"'),
+    ]);
+  } catch (e) { /* fonts not available, continue with fallback */ }
+
   // Render the frame directly instead of #card. html2canvas clips
   // the bottom of #card due to a flex+overflow interaction in the
   // card wrapper, but the frame renders the full 720x470 correctly.
@@ -714,6 +733,14 @@ async function exportCardImage(format) {
         if (passport) {
           passport.style.cssText += ';transform:none !important;transform-origin:top left !important;';
         }
+        // Disable subpixel font smoothing on the clone so render is
+        // consistent between devices. Without this, mobile (CrispEdges)
+        // and desktop (SubpixelAntialiased) produce visibly different
+        // glyphs that cause the "kacau" complaint.
+        const all = doc.querySelectorAll('*');
+        all.forEach(el => {
+          el.style.cssText += ';-webkit-font-smoothing:antialiased !important;-moz-osx-font-smoothing:grayscale !important;text-rendering:geometricPrecision !important;';
+        });
         // Force solid parchment on both pages — html2canvas loses the gradient
         // and renders the right page as transparent → black background bleed
         const left = doc.querySelector('.passport__page--left');
