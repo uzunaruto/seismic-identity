@@ -1163,8 +1163,8 @@ main { flex: 1; }
 }
 .passport__portrait-frame {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   flex-shrink: 0;
   aspect-ratio: 1 / 1;
   background: linear-gradient(135deg, var(--pp-bronze) 0%, var(--pp-bronze-dark) 100%);
@@ -1209,7 +1209,7 @@ main { flex: 1; }
   align-items: center;
   justify-content: center;
   color: var(--pp-parchment);
-  font-size: 32px;
+  font-size: 42px;
   overflow: hidden;
   border-radius: 1px;
   position: relative;
@@ -1229,7 +1229,7 @@ main { flex: 1; }
 .passport__nameplate {
   flex: 1;
   min-width: 0;
-  height: 64px;
+  height: 84px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1238,7 +1238,7 @@ main { flex: 1; }
   background: linear-gradient(180deg, var(--pp-ink) 0%, #1a1208 100%);
   color: var(--pp-parchment);
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.12em;
   line-height: 1.1;
@@ -1278,6 +1278,10 @@ main { flex: 1; }
 /* magnitude tier color tokens (used by inline list item) */
 .passport__row--mag {
   --pp-mag-color: var(--pp-bronze);
+  /* v6.1: magnitude row hidden — tier info no longer shown as a data row.
+     The badge is already conveyed via Discord OAuth KNOWN_ROLES, and the
+     row was visually redundant with the role/tier system. */
+  display: none;
 }
 .passport__row--mag[data-magnitude="1"] { --pp-mag-color: #d5d1c4; }
 .passport__row--mag[data-magnitude="2"] { --pp-mag-color: #5bb5a2; }
