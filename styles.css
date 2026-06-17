@@ -1315,16 +1315,17 @@ main { flex: 1; }
 }
 .passport__row:last-child { border-bottom: none; }
 .passport__row-label {
-  font-size: 6.5px;
-  letter-spacing: 0.18em;
-  color: var(--pp-ink-soft);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--pp-ink);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+  opacity: 0.78;
 }
 .passport__row-value {
   font-size: 11px;
@@ -1506,7 +1507,21 @@ main { flex: 1; }
   z-index: 1;
 }
 
-/* signature — flex flow between barcode and stamp, right-aligned within its cell */
+/* signature + stamp combined as a single unit on the right of the footer */
+.passport__sig-stamp {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 6px 0 10px;
+  border-left: 1px dashed rgba(110, 79, 26, 0.28);
+  border-right: 1px dashed rgba(110, 79, 26, 0.28);
+}
+
+/* signature — fills the left part of the sig-stamp group, right-aligned */
 .passport__sig-wrap {
   display: flex;
   align-items: center;
@@ -1514,7 +1529,6 @@ main { flex: 1; }
   flex: 1;
   min-width: 0;
   height: 100%;
-  padding: 0 8px;
   pointer-events: none;
 }
 
