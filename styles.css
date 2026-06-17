@@ -1369,12 +1369,9 @@ main { flex: 1; }
   font-family: var(--font-mono);
 }
 .passport__row-value a {
-  /* electric teal — futuristic Web3 identity link color */
-  background: linear-gradient(135deg, #0ea5b7 0%, #14b8a6 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  /* dark navy blue — high-contrast link color on cream parchment, traditional
+     "link" cue without being too loud (no purple AI glow, no electric cyan) */
+  color: #1a3a8c;
   text-decoration: none;
   font-weight: 700;
   font-size: 11px;
@@ -1450,16 +1447,12 @@ main { flex: 1; }
 .passport__field-role[data-magnitude="8"] { color: var(--mag-8); }
 .passport__field-role[data-magnitude="9"] { color: var(--mag-9); }
 .passport__field-faction {
-  /* metallic bronze — matches SEISMIC brand wordmark */
-  background: linear-gradient(135deg, #d4a857 0%, var(--pp-bronze) 45%, var(--pp-copper) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  /* solid black ink — high legibility on cream parchment, matches the other
+     data row values (ROLE, JOINED, etc) which are all --pp-ink */
+  color: var(--pp-ink);
   font-weight: 800 !important;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  filter: drop-shadow(0 0 0.3px rgba(110, 79, 26, 0.5));
 }
 .passport__flag {
   display: inline-flex;
