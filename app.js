@@ -38,7 +38,9 @@ const defaultState = {
   finish: 'matte',   // matte | holographic
   avatar: 'circle',  // circle | squircle | hex
   border: 'minimal', // minimal | glow | stamp
-  xHandle: '',       // optional manual X handle override
+  xHandle: '',       // X @handle
+  xName: '',         // X display name (primary identity)
+  xPfp: '',          // X PFP URL (primary identity photo)
 };
 
 let state = loadState();
@@ -76,6 +78,45 @@ function clearAllState() {
 }
 
 // ============================================================
+// IDENTITY RESOLUTION — X is primary, Discord is verification
+// ============================================================
+// Returns the effective values shown on the card with priority:
+//   1. X (manual: state.xName/xPfp/xHandle) — user-entered, primary
+//   2. Manual identity (state.identity from connect form)
+//   3. Discord (state.identity.discordPfp, discordNick) — fallback PFP/name
+// Discord role/magnitude/joinedAt/roleIds stay on state.identity separately.
+function getDisplayName() {
+  if (state.xName && state.xName.trim()) return state.xName.trim();
+  if (state.identity && state.identity.name) return state.identity.name;
+  return '';
+}
+function getDisplayPfp() {
+  if (state.xPfp && state.xPfp.trim()) return state.xPfp.trim();
+  if (state.identity && state.identity.pfp) return state.identity.pfp;
+  if (state.identity && state.identity.discordPfp) return state.identity.discordPfp;
+  return '';
+}
+function getDisplayHandle() {
+  if (state.xHandle && state.xHandle.trim()) return state.xHandle.trim().replace(/^@/, '');
+  if (state.identity && state.identity.handle) return state.identity.handle;
+  return '';
+}
+function getDisplayRole() {
+  // Discord verification takes priority (auto-detected Magnitude)
+  if (state.identity && state.identity.role) return state.identity.role;
+  // Fallback to manual role from connect form
+  if (state.identity && state.identity.role === null && state.identity.tier === 'self') {
+    // self-declared Magnitude is on identity.role via the manual form
+  }
+  return (state.identity && state.identity.role) || null;
+}
+function getDisplayMagnitude() {
+  if (state.identity && state.identity.magnitude) return state.identity.magnitude;
+  if (state.identity && state.identity.role) return detectMagnitude(state.identity.role);
+  return null;
+}
+
+// ============================================================
 // SEISMIC ID
 // ============================================================
 function generateSeismicId() {
@@ -86,6 +127,28 @@ function generateSeismicId() {
 // ============================================================
 // MAGNITUDE DETECTION
 // ============================================================
+// Discord role IDs → Magnitude tier (sourced from seismic-cards.vercel.app)
+// Used by the implicit OAuth flow to read user.roles from guilds.members.read
+const MAG_ROLE_IDS = {
+  '1346572989654765691': 3,
+  '1346583232220500051': 4,
+  '1346583465704951879': 5,
+  '1346583601025781760': 6,
+  '1346583708018278481': 7,
+  '1346583804630011914': 8,
+  '1346583929473335429': 9,
+};
+
+function detectMagnitudeFromRoles(roleIds) {
+  if (!Array.isArray(roleIds) || !roleIds.length) return null;
+  let highest = 0;
+  for (const id of roleIds) {
+    const mag = MAG_ROLE_IDS[id];
+    if (mag && mag > highest) highest = mag;
+  }
+  return highest || null;
+}
+
 function detectMagnitude(role) {
   if (!role) return null;
   const m = role.match(/^Magnitude\s+(\d+)/i);
@@ -131,8 +194,13 @@ function showView(name) {
 
 function determineInitialView() {
   const hash = window.location.hash;
-  if (hash.startsWith('#discord=')) {
-    handleDiscordCallback();
+  if (hash.includes('access_token=') || hash.includes('error=')) {
+    handleDiscordCallback().then((handled) => {
+      if (handled) return; // showView('builder') was called inside
+      if (state.identity) showView('builder');
+      else showView('connect');
+    });
+    return;
   }
   if (state.identity) {
     showView('builder');
@@ -141,36 +209,105 @@ function determineInitialView() {
   }
 }
 
-function handleDiscordCallback() {
+// ============================================================
+// DISCORD OAUTH — IMPLICIT TOKEN FLOW (no backend needed)
+// ============================================================
+// Client-side OAuth using response_type=token. The access token comes back
+// in the URL hash, which we use directly to call Discord API.
+// Scopes: 'identify guilds.members.read' lets us read the user's roles in
+// any guild the OAuth app is a member of (the Seismic guild).
+const DISCORD_CLIENT_ID = '1509035141526192299';
+const SEISMIC_GUILD_ID  = '1343751435711414362';
+const DISCORD_REDIRECT  = 'https://seismic-identity.vercel.app/'; // back to root
+const DISCORD_SCOPES    = 'identify guilds.members.read';
+
+function startDiscordAuth() {
+  // Wipe localStorage so the new connection doesn't merge with old data
+  // (preserves seismicId so we don't churn passport IDs)
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: DISCORD_REDIRECT,
+    response_type: 'token',
+    scope: DISCORD_SCOPES,
+    prompt: 'consent',
+  });
+  location.href = `https://discord.com/oauth2/authorize?${params}`;
+}
+
+function discordAvatarUrl(user, guildMember) {
+  if (guildMember && guildMember.avatar) {
+    return `https://cdn.discordapp.com/guilds/${SEISMIC_GUILD_ID}/users/${user.id}/avatars/${guildMember.avatar}.png?size=256`;
+  }
+  if (user.avatar) {
+    const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=256`;
+  }
+  // Default avatar
+  const idx = Number(BigInt(user.id) >> 22n) % 6;
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
+}
+
+async function fetchDiscordMember(token) {
+  const [uRes, mRes] = await Promise.all([
+    fetch('https://discord.com/api/v10/users/@me', { headers: { Authorization: `Bearer ${token}` } }),
+    fetch(`https://discord.com/api/v10/users/@me/guilds/${SEISMIC_GUILD_ID}/member`, { headers: { Authorization: `Bearer ${token}` } }),
+  ]);
+  if (!uRes.ok) throw new Error(`Discord /users/@me failed: ${uRes.status}`);
+  const user = await uRes.json();
+  const member = mRes.ok ? await mRes.json() : null;
+  return { user, member };
+}
+
+async function handleDiscordCallback() {
   const hash = window.location.hash.replace(/^#/, '');
   const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  if (!accessToken) return false;
+  // Clear the hash so the token doesn't sit in the URL bar
+  history.replaceState(null, '', window.location.pathname);
+
+  showStatus && showStatus('Scanning Discord roles…');
   try {
-    const encoded = params.get('discord');
-    const data = JSON.parse(atob(decodeURIComponent(encoded)));
-    state.identity = {
-      source: 'discord',
-      id: data.id,
-      name: data.global_name || data.username,
-      handle: '', // not collected from Discord
-      pfp: data.avatar,
-      role: data.role || null,
-      magnitude: detectMagnitude(data.role),
-      tier: data.tier || 'unknown',
-      inGuild: !!data.inSeismicGuild,
-      joinedAt: data.joinedAt || null,
-    };
-    // Region from OAuth (locale-derived or member override)
-    state.region = data.region || state.region || '';
+    const { user, member } = await fetchDiscordMember(accessToken);
+    if (!member) {
+      toast('Not in the Seismic Discord. Join first, then retry.', 'err');
+      return true;
+    }
+    const roleIds = member.roles || [];
+    const mag = detectMagnitudeFromRoles(roleIds);
+    const role = mag ? `Magnitude ${mag}` : (member.roles.length ? 'Seismic Member' : null);
+    const joinedAt = member.joined_at ? member.joined_at.slice(0, 10) : null;
+    const avatar = discordAvatarUrl(user, member);
+
+    // Merge: only fill role/joined/region from Discord. NEVER overwrite
+    // X-sourced name/PFP/handle (those are set in the manual form or builder).
+    state.identity = state.identity || { source: 'discord' };
+    state.identity.source = 'discord';
+    state.identity.discordId = user.id;
+    state.identity.discordUsername = user.username;
+    state.identity.discordNick = member.nick || null;
+    state.identity.role = role;
+    state.identity.roleIds = roleIds;
+    state.identity.magnitude = mag;
+    state.identity.tier = mag ? 'verified' : 'self';
+    state.identity.inGuild = true;
+    state.identity.joinedAt = joinedAt;
+    state.identity.discordPfp = avatar;
+    state.region = state.region || 'Indonesia'; // fallback if no manual region
+
     if (!state.seismicId) {
       state.seismicId = generateSeismicId();
       state.issued = new Date().toISOString();
     }
     saveState();
-    history.replaceState(null, '', window.location.pathname);
-    toast(`Discord connected · ${data.role || 'member'}`, 'ok');
+    const magLabel = mag ? `Magnitude ${mag}` : 'member';
+    toast(`Discord verified · ${magLabel}`, 'ok');
+    showView('builder');
+    return true;
   } catch (e) {
-    console.error('Discord callback parse failed:', e);
-    toast('Connection failed. Try again.', 'err');
+    console.error('Discord callback failed:', e);
+    toast('Discord connection failed. Try again.', 'err');
+    return true;
   }
 }
 
@@ -231,6 +368,7 @@ function renderBuilder() {
   renderIdentityCard();
   renderSegGroups();
   renderXHandleInput();
+  renderXIdentityInputs();
   renderRegionInput();
   renderCard();
   renderExport();
@@ -256,6 +394,12 @@ function renderIdentityCard() {
   const roleEl = document.getElementById('idRole');
   const roleText = document.getElementById('idRoleText');
 
+  const effName   = getDisplayName();
+  const effPfp    = getDisplayPfp();
+  const effHandle = getDisplayHandle();
+  const effRole   = getDisplayRole();
+  const effMag    = getDisplayMagnitude();
+
   if (!id) {
     name.textContent = '— no identity —';
     handle.textContent = 'Connect Discord or fill the manual form';
@@ -263,14 +407,16 @@ function renderIdentityCard() {
     roleEl.hidden = true;
     return;
   }
-  name.textContent = id.name || '—';
-  handle.textContent = id.handle ? `@${id.handle}` : (id.source === 'discord' ? `discord · ${id.id?.slice(-4) || '?'}` : 'self-submitted');
-  pfp.style.backgroundImage = id.pfp ? `url('${id.pfp}')` : '';
-  if (id.role) {
+  name.textContent = effName || '—';
+  handle.textContent = effHandle
+    ? '@' + effHandle
+    : (id.source === 'discord' ? `discord · ${(id.discordId || id.id || '').slice(-4) || '?'}` : 'self-submitted');
+  pfp.style.backgroundImage = effPfp ? `url('${effPfp}')` : '';
+  if (effRole) {
     roleEl.hidden = false;
-    roleText.textContent = id.role;
-    roleEl.dataset.roleKind = detectRoleKind(id.role);
-    roleEl.dataset.magnitude = id.magnitude || '';
+    roleText.textContent = effRole;
+    roleEl.dataset.roleKind = detectRoleKind(effRole);
+    roleEl.dataset.magnitude = effMag || '';
   } else {
     roleEl.hidden = true;
   }
@@ -371,6 +517,43 @@ function renderXHandleInput() {
   };
 }
 
+function renderXIdentityInputs() {
+  // X display name input
+  const nameInput = document.getElementById('xNameInput');
+  if (nameInput) {
+    nameInput.value = state.xName || '';
+    nameInput.oninput = () => {
+      state.xName = nameInput.value.trim().slice(0, 32);
+      saveState();
+      renderCard();
+    };
+  }
+  // X PFP URL input
+  const pfpInput = document.getElementById('xPfpInput');
+  if (pfpInput) {
+    pfpInput.value = state.xPfp || '';
+    pfpInput.oninput = () => {
+      const v = pfpInput.value.trim();
+      if (v && !/^https?:\/\//i.test(v)) {
+        pfpInput.setCustomValidity('Must start with http(s)://');
+      } else {
+        pfpInput.setCustomValidity('');
+      }
+      state.xPfp = v;
+      saveState();
+      renderCard();
+    };
+  }
+  // Discord verify button label — change based on verification state
+  const verifyLabel = document.getElementById('discordVerifyLabel');
+  if (verifyLabel) {
+    const verified = state.identity && state.identity.roleIds && state.identity.roleIds.length;
+    if (verified) {
+      verifyLabel.textContent = `Re-verify Discord · ${state.identity.role}`;
+    }
+  }
+}
+
 // ============================================================
 // SIGNATURE PAD
 // ============================================================
@@ -391,7 +574,7 @@ function initSignaturePad() {
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#1a0e02';
+    ctx.strokeStyle = '#ffffff';
   }
   setup();
 
@@ -584,18 +767,24 @@ function renderCard() {
   const regionFlag = document.getElementById('cardFlag');
   const seismicId = document.getElementById('cardSeismicId');
 
+  // Resolve effective identity values (X > manual > Discord fallback)
+  const effName   = getDisplayName();
+  const effPfp    = getDisplayPfp();
+  const effHandle = getDisplayHandle();
+  const effRole   = getDisplayRole();
+  const effMag    = getDisplayMagnitude();
+
   // ----- NAME -----
-  if (id) {
-    name.textContent = (id.name || 'NAME').toString().toUpperCase().slice(0, 18);
+  if (effName) {
+    name.textContent = effName.toString().toUpperCase().slice(0, 18);
   } else {
     name.textContent = 'NAME';
   }
 
   // ----- HANDLE (X) -----
-  const effectiveHandle = state.xHandle || (id && id.handle) || '';
-  if (effectiveHandle) {
-    handle.textContent = '@' + effectiveHandle;
-    handle.href = `https://x.com/${effectiveHandle}`;
+  if (effHandle) {
+    handle.textContent = '@' + effHandle;
+    handle.href = `https://x.com/${effHandle}`;
   } else {
     handle.textContent = '— not set —';
     handle.href = '#';
@@ -603,7 +792,7 @@ function renderCard() {
   // inline handle inside nameplate (compact display)
   const handleInline = document.getElementById('cardHandleInline');
   if (handleInline) {
-    handleInline.textContent = effectiveHandle ? '@' + effectiveHandle : '— not connected —';
+    handleInline.textContent = effHandle ? '@' + effHandle : '— not connected —';
   }
 
   // ----- PFP -----
@@ -613,19 +802,19 @@ function renderCard() {
   // in sync — the img provides the on-screen pixel-perfect render,
   // the background is a fallback for the html2canvas export pipeline
   // which sometimes struggles with <img> tags in the cloned DOM.
-  if (id && id.pfp) {
-    pfp.style.backgroundImage = `url('${escapeHtml(id.pfp)}')`;
+  if (effPfp) {
+    pfp.style.backgroundImage = `url('${escapeHtml(effPfp)}')`;
     pfp.style.backgroundSize = 'cover';
     pfp.style.backgroundPosition = 'center';
-    pfp.innerHTML = `<img src="${escapeHtml(id.pfp)}" alt="">`;
+    pfp.innerHTML = `<img src="${escapeHtml(effPfp)}" alt="">`;
   } else {
     pfp.style.backgroundImage = '';
     pfp.innerHTML = '<i class="ph ph-user"></i>';
   }
 
   // ----- ROLE / MAGNITUDE -----
-  const roleText = (id && id.role) || 'Seismic Member';
-  const mag = (id && id.magnitude) || null;
+  const roleText = effRole || 'Seismic Member';
+  const mag = effMag;
   roleEl.textContent = roleText;
   roleEl.dataset.magnitude = mag ? String(mag) : '';
   if (mag) {
