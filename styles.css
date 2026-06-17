@@ -1278,10 +1278,6 @@ main { flex: 1; }
 /* magnitude tier color tokens (used by inline list item) */
 .passport__row--mag {
   --pp-mag-color: var(--pp-bronze);
-  /* v6.1: magnitude row hidden — tier info no longer shown as a data row.
-     The badge is already conveyed via Discord OAuth KNOWN_ROLES, and the
-     row was visually redundant with the role/tier system. */
-  display: none;
 }
 .passport__row--mag[data-magnitude="1"] { --pp-mag-color: #d5d1c4; }
 .passport__row--mag[data-magnitude="2"] { --pp-mag-color: #5bb5a2; }
@@ -1408,6 +1404,10 @@ main { flex: 1; }
   font-weight: 600;
   line-height: 1;
 }
+
+/* v6.1: hide magnitude row from data list — tier info conveyed via role badge instead.
+   Placed AFTER .passport__row base so it wins the same-specificity cascade. */
+.passport__row--mag { display: none; }
 
 /* role / faction accent colors (purple/violet) */
 .passport__field-role {
