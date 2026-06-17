@@ -693,8 +693,9 @@ async function exportCardImage(format) {
       scale: 3,
       useCORS: true,
       allowTaint: true,
-      width: 720,
-      height: 470,
+      // Don't pass width/height — html2canvas clips the bottom when
+      // these don't match the element's natural render box. Just
+      // let it capture the element at its actual size and scale up.
       windowWidth: 720,
       windowHeight: 470,
       onclone: (doc) => {
