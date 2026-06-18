@@ -1761,6 +1761,21 @@ main { flex: 1; }
 .passport__timeline-current .passport__tl-name {
   color: var(--pp-purple-2);
 }
+.passport__tl-soon {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pp-ink-soft);
+  background: rgba(184, 138, 62, 0.14);
+  border: 0.5px solid rgba(184, 138, 62, 0.4);
+  border-radius: 2px;
+  padding: 1px 4px;
+  white-space: nowrap;
+  align-self: center;
+  line-height: 1;
+}
 
 /* world map watermark — disabled, replaced by ecosystem logo slot */
 .passport__map {
