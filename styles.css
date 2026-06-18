@@ -1605,7 +1605,7 @@ main { flex: 1; }
   justify-content: flex-end;
   flex: 0 0 auto;
   min-width: 0;
-  max-width: 130px;       /* wider so signature has more room to shine */
+  max-width: 160px;       /* wider so signature has more room to shine */
   height: 100%;
   pointer-events: none;
   padding-left: 0;
@@ -1613,7 +1613,7 @@ main { flex: 1; }
 
 .passport__sig-script {
   font-family: 'Caveat', 'Brush Script MT', cursive;
-  font-size: 18px;
+  font-size: 22px;
   color: var(--pp-ink);
   line-height: 1;
   transform: rotate(-4deg);
@@ -1625,9 +1625,9 @@ main { flex: 1; }
 }
 
 .passport__sig-script img {
-  height: 24px;
+  height: 36px;          /* bigger signature — more readable at export scale */
   width: auto;
-  max-width: 90px;
+  max-width: 130px;
   display: block;
   transform: rotate(-4deg);
   transform-origin: center;
