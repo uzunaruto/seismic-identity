@@ -39,6 +39,7 @@ const defaultState = {
   avatar: 'circle',  // circle | squircle | hex
   border: 'minimal', // minimal | glow | stamp
   xHandle: '',       // X @handle (links to X profile, optional)
+  xPostUrl: '',      // X post URL — for quote-tweet share (optional)
 };
 
 let state = loadState();
@@ -375,6 +376,7 @@ function renderBuilder() {
   renderIdentityCard();
   renderSegGroups();
   renderXHandleInput();
+  renderXPostUrlInput();
   renderXIdentityInputs();
   renderRegionInput();
   renderCard();
@@ -522,6 +524,36 @@ function renderXHandleInput() {
     saveState();
     renderCard();
   };
+}
+
+function renderXPostUrlInput() {
+  const input = document.getElementById('xPostUrlInput');
+  if (!input) return;
+  input.value = state.xPostUrl || '';
+  input.oninput = () => {
+    const v = input.value.trim();
+    // Accept x.com or twitter.com status URLs
+    const valid = !v || /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(v);
+    if (!valid) {
+      input.setCustomValidity('Paste a valid X post URL (e.g. https://x.com/user/status/123...)');
+    } else {
+      input.setCustomValidity('');
+    }
+    state.xPostUrl = v;
+    saveState();
+    updateShareButton();
+  };
+}
+
+function updateShareButton() {
+  const btn = document.getElementById('shareX');
+  if (!btn) return;
+  const label = btn.querySelector('span');
+  if (state.xPostUrl && /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(state.xPostUrl)) {
+    if (label) label.textContent = 'Quote Post on X';
+  } else {
+    if (label) label.textContent = 'Share to X';
+  }
 }
 
 function renderXIdentityInputs() {
@@ -997,6 +1029,7 @@ function renderExport() {
   if (exportPng) exportPng.onclick = () => exportCardImage('png');
   if (exportPdf) exportPdf.onclick = () => exportCardImage('pdf');
   if (shareX) shareX.onclick = shareToX;
+  updateShareButton();
   if (copyId) copyId.onclick = copySeismicId;
   if (regenId) regenId.onclick = regenerateSeismicId;
 }
@@ -1215,9 +1248,17 @@ function shareToX() {
     state.identity.magnitude,
     state.seismicId
   );
-  const url = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
-  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  window.open(intent, '_blank', 'noopener');
+  // If user provided an X post URL, X will auto-quote it when it appears in the tweet
+  const xPostUrl = state.xPostUrl && /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(state.xPostUrl)
+    ? state.xPostUrl
+    : '';
+  const verifyUrl = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
+  // Append the X post URL to text so it shows up as a card and X auto-converts to quote
+  const fullText = xPostUrl ? text + '\n\n' + xPostUrl : text;
+  const intentUrl = xPostUrl
+    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullText)}`
+    : `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`;
+  window.open(intentUrl, '_blank', 'noopener');
 }
 
 async function copySeismicId() {

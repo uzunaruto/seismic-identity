@@ -535,6 +535,17 @@ main { flex: 1; }
   flex: 1;
   border-radius: 0 !important;
 }
+.field__opt {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-left: 6px;
+  padding: 1px 5px;
+  background: var(--surface-2);
+  border-radius: 3px;
+}
 .field__hint {
   font-size: 11px;
   color: var(--ink-4);
