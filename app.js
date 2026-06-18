@@ -808,7 +808,13 @@ function renderEcosystem() {
     // export. Both <img> and background-image are set so live preview
     // stays sharp AND html-to-image's background-image fallback catches
     // any race where the <img> async load hasn't completed yet.
-    cell.innerHTML = `<img src="${escapeHtml(p.logo)}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async">`;
+    // NOTE: no loading="lazy" here. html-to-image's SVG <foreignObject>
+    // export rasterizes the cloned DOM without waiting for lazy images,
+    // so any logo with loading="lazy" appears BLANK in the PNG export.
+    // Same-origin /logos/* paths load fast enough that eager loading is fine.
+    // The browser's native lazy heuristic would defer them until they
+    // scroll into view, which they never do in the cloned export document.
+    cell.innerHTML = `<img src="${escapeHtml(p.logo)}" alt="${escapeHtml(p.name)}" decoding="async">`;
     grid.appendChild(cell);
   }
 }
