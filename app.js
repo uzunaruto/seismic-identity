@@ -781,7 +781,6 @@ const SEISMIC_ECOSYSTEM = [
   { name: 'Meow',             url: 'https://www.meow.com/',       logo: '/logos/meow.png' },
   { name: 'Blend',            url: 'https://blend.money/',        logo: '/logos/blend.png' },
   { name: 'Shift',            url: 'https://www.shift-apply.com/',logo: '/logos/shift.png' },
-  { name: 'Seismic Time Zone',url: 'https://seismic-dice.vercel.app/', logo: '/logos/seismic-time-zone.svg', fullColor: true },
 ];
 
 // Cache of local logo URL → data URL (base64). Populated on page load so
