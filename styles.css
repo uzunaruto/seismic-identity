@@ -917,6 +917,12 @@ main { flex: 1; }
   --pp-gold: #c19200;
   --pp-copper: #a87c2e;
   --pp-mag-color: var(--pp-bronze);
+  /* border style tokens — default to bronze, overridden per-magnitude below */
+  --pp-border-color: var(--pp-bronze);
+  --pp-border-color-light: var(--pp-bronze-light);
+  --pp-border-color-dark: var(--pp-bronze-dark);
+  --pp-border-glow: rgba(184, 138, 62, 0.4);
+  --pp-stamp-color: #8b3a1a;
 }
 
 /* outer article (controls sizing + animation) */
@@ -929,7 +935,8 @@ main { flex: 1; }
   --pp-scale: 1;
 }
 
-/* the dark gunmetal frame that holds the two pages */
+/* the dark gunmetal frame that holds the two pages.
+   Ring colors cascade from magnitude tier via --pp-border-color tokens. */
 .passport__frame {
   position: relative;
   width: 100%;
@@ -938,8 +945,8 @@ main { flex: 1; }
   border-radius: 6px;
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 0 0 3px var(--pp-bronze-dark),
-    0 0 0 4px var(--pp-bronze),
+    0 0 0 3px var(--pp-border-color-dark),
+    0 0 0 4px var(--pp-border-color),
     0 30px 60px -20px rgba(0, 0, 0, 0.6),
     0 10px 30px -10px rgba(0, 0, 0, 0.4);
   display: grid;
@@ -1306,6 +1313,18 @@ main { flex: 1; }
 .passport__row--mag[data-magnitude="8"] { --pp-mag-color: #9c1515; }
 .passport__row--mag[data-magnitude="9"] { --pp-mag-color: #0693cd; }
 
+/* border style: cascade magnitude tier color to border/stamp tokens.
+   Minimal/Glow/Stamp styles below consume --pp-border-color + --pp-border-glow. */
+.passport[data-magnitude="1"] { --pp-border-color: #d5d1c4; --pp-border-color-light: #e6e2d4; --pp-border-color-dark: #ada895; --pp-border-glow: rgba(213, 209, 196, 0.35); --pp-stamp-color: #8a8270; }
+.passport[data-magnitude="2"] { --pp-border-color: #5bb5a2; --pp-border-color-light: #82d4c2; --pp-border-color-dark: #3a8273; --pp-border-glow: rgba(91, 181, 162, 0.45); --pp-stamp-color: #2d6e62; }
+.passport[data-magnitude="3"] { --pp-border-color: #2aa346; --pp-border-color-light: #56c66a; --pp-border-color-dark: #1b702f; --pp-border-glow: rgba(42, 163, 70, 0.45); --pp-stamp-color: #155522; }
+.passport[data-magnitude="4"] { --pp-border-color: #75e300; --pp-border-color-light: #95f53a; --pp-border-color-dark: #4f9900; --pp-border-glow: rgba(117, 227, 0, 0.5); --pp-stamp-color: #3a7000; }
+.passport[data-magnitude="5"] { --pp-border-color: #659e0f; --pp-border-color-light: #85c12c; --pp-border-color-dark: #436807; --pp-border-glow: rgba(101, 158, 15, 0.5); --pp-stamp-color: #345206; }
+.passport[data-magnitude="6"] { --pp-border-color: #c19200; --pp-border-color-light: #e2b130; --pp-border-color-dark: #856300; --pp-border-glow: rgba(193, 146, 0, 0.5); --pp-stamp-color: #6e4f00; }
+.passport[data-magnitude="7"] { --pp-border-color: #a87504; --pp-border-color-light: #d4942a; --pp-border-color-dark: #6f4a02; --pp-border-glow: rgba(168, 117, 4, 0.55); --pp-stamp-color: #5a3d01; }
+.passport[data-magnitude="8"] { --pp-border-color: #9c1515; --pp-border-color-light: #c73838; --pp-border-color-dark: #690d0d; --pp-border-glow: rgba(156, 21, 21, 0.6); --pp-stamp-color: #4e0808; }
+.passport[data-magnitude="9"] { --pp-border-color: #0693cd; --pp-border-color-light: #38b6e4; --pp-border-color-dark: #036389; --pp-border-glow: rgba(6, 147, 205, 0.6); --pp-stamp-color: #024b6d; }
+
 /* list — single column vertical list, 7 items from MAG down to X HANDLE */
 .passport__list {
   display: flex;
@@ -1493,7 +1512,8 @@ main { flex: 1; }
 }
 /* barcode will be filled by JS with random widths */
 
-/* circular stamp — copper/bronze seal, ties into the metallic brand */
+/* circular stamp — color cascades from magnitude tier via --pp-stamp-color.
+   Mag 1 = warm grey, Mag 7 = deep copper, Mag 9 = dark sky. */
 .passport__stamp {
   position: relative;
   width: 56px;
@@ -1503,9 +1523,9 @@ main { flex: 1; }
   align-items: center;
   justify-content: center;
   transform: rotate(-8deg);
-  color: #8b3a1a;
+  color: var(--pp-stamp-color);
   opacity: 0.82;
-  filter: drop-shadow(0 0 0.5px rgba(139, 58, 26, 0.35));
+  filter: drop-shadow(0 0 0.5px color-mix(in srgb, var(--pp-stamp-color) 35%, transparent));
 }
 .passport__stamp-ring {
   position: absolute;
@@ -1860,18 +1880,30 @@ main { flex: 1; }
   50% { background-position: 100% 100%; }
 }
 
-/* border style: minimal (default), glow, stamp */
+/* border style: minimal (default), glow, stamp — colors cascade from magnitude.
+   Defaults to bronze when no magnitude set. Each tier gets its own tinted border. */
+.passport[data-border="minimal"] {
+  /* minimal is the default — frame keeps its standard ink ring + tier accent on the spine */
+  --pp-frame-accent: var(--pp-border-color);
+}
 .passport[data-border="glow"] {
-  filter: drop-shadow(0 0 20px rgba(184, 138, 62, 0.4)) drop-shadow(0 0 40px rgba(139, 92, 246, 0.2));
+  filter:
+    drop-shadow(0 0 20px var(--pp-border-glow))
+    drop-shadow(0 0 40px var(--pp-border-glow));
 }
 .passport[data-border="stamp"] .passport__frame {
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 0 0 3px var(--pp-bronze-dark),
-    0 0 0 4px var(--pp-bronze),
-    0 0 0 5px var(--pp-bronze-dark),
-    0 0 0 6px var(--pp-bronze-light),
+    0 0 0 3px var(--pp-border-color-dark),
+    0 0 0 4px var(--pp-border-color),
+    0 0 0 5px var(--pp-border-color-dark),
+    0 0 0 6px var(--pp-border-color-light),
     0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+/* spine right border picks up tier accent for minimal style */
+.passport[data-border="minimal"] .passport__spine,
+.passport[data-border="minimal"] .passport__page--right {
+  border-right-color: var(--pp-border-color);
 }
 
 /* passport mock (connect view teaser) */
