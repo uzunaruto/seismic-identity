@@ -18,10 +18,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 
-  <link rel="stylesheet" href="styles.css?v=6.24">
+  <link rel="stylesheet" href="styles.css?v=6.27">
 </head>
 <body>
 
@@ -73,7 +72,7 @@
               <i class="ph-fill ph-fingerprint" aria-hidden="true"></i>
               <div>
                 <strong>Yours to share</strong>
-                <span>Export as PNG or PDF. Each passport has a unique ID and a scannable verify code. No wallet needed.</span>
+                <span>Export as PNG or share directly to X. Each passport has a unique ID and a scannable verify code. No wallet needed.</span>
               </div>
             </li>
           </ul>
@@ -516,8 +515,8 @@
               <li>
                 <span class="builder__tips-num">02</span>
                 <div>
-                  <strong>PDF for keepsake</strong>
-                  <p>A4 landscape, print-ready. Fold once along the spine for a real booklet.</p>
+                  <strong>Quote the campaign</strong>
+                  <p>Paste your X post URL to auto-quote it on share. Tag the team, push the campaign.</p>
                 </div>
               </li>
               <li>
@@ -556,10 +555,6 @@
               <i class="ph ph-download-simple" aria-hidden="true"></i>
               <span>PNG</span>
             </button>
-            <button type="button" class="btn btn--primary" id="exportPdf">
-              <i class="ph ph-file-pdf" aria-hidden="true"></i>
-              <span>PDF</span>
-            </button>
             <button type="button" class="btn btn--x-share" id="shareX">
               <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
               <span>Share to X</span>
@@ -588,6 +583,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=6.24" defer></script>
+  <script src="app.js?v=6.27" defer></script>
 </body>
 </html>
