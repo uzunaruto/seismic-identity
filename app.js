@@ -1260,12 +1260,10 @@ function shareToX() {
   const xPostUrl = state.xPostUrl && /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(state.xPostUrl)
     ? state.xPostUrl
     : '';
-  const verifyUrl = state.seismicId ? CONFIG.VERIFY_BASE + state.seismicId : '';
   // Append the X post URL to text so it shows up as a card and X auto-converts to quote
+  // (no auto-append verify URL — the share text already ends with the canonical CTA URL)
   const fullText = xPostUrl ? text + '\n\n' + xPostUrl : text;
-  const intentUrl = xPostUrl
-    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullText)}`
-    : `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`;
+  const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullText)}`;
   window.open(intentUrl, '_blank', 'noopener');
 }
 
