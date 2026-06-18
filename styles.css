@@ -1762,19 +1762,21 @@ main { flex: 1; }
   color: var(--pp-purple-2);
 }
 .passport__tl-soon {
+  display: block;
   font-family: var(--font-mono);
-  font-size: 7px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--pp-ink-soft);
-  background: rgba(184, 138, 62, 0.14);
-  border: 0.5px solid rgba(184, 138, 62, 0.4);
+  background: rgba(184, 138, 62, 0.18);
+  border: 0.5px solid rgba(184, 138, 62, 0.45);
   border-radius: 2px;
-  padding: 1px 4px;
+  padding: 0 3px;
+  margin-top: 1px;
   white-space: nowrap;
-  align-self: center;
-  line-height: 1;
+  line-height: 1.4;
+  width: fit-content;
 }
 
 /* world map watermark — disabled, replaced by ecosystem logo slot */
