@@ -580,8 +580,21 @@ function initSignaturePad() {
   let drawing = false, lx = 0, ly = 0;
   function pos(e) {
     const rect = canvas.getBoundingClientRect();
-    const t = e.touches ? e.touches[0] : e;
-    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    // CRITICAL: e.touches is null on touchend, so guard against that.
+    // For touchstart/touchmove use touches[0]; for mouse events use the event itself.
+    let cx, cy;
+    if (e.touches && e.touches.length) {
+      cx = e.touches[0].clientX;
+      cy = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length) {
+      // touchend path: touches is empty, use changedTouches to get the released finger
+      cx = e.changedTouches[0].clientX;
+      cy = e.changedTouches[0].clientY;
+    } else {
+      cx = e.clientX;
+      cy = e.clientY;
+    }
+    return { x: cx - rect.left, y: cy - rect.top };
   }
   function start(e) {
     e.preventDefault();
@@ -601,8 +614,9 @@ function initSignaturePad() {
     ctx.stroke();
     lx = p.x; ly = p.y;
   }
-  function end() {
+  function end(e) {
     if (!drawing) return;
+    if (e && e.preventDefault) e.preventDefault();
     drawing = false;
     if (sigHasInk) {
       state.signature = canvas.toDataURL('image/png');
@@ -612,12 +626,18 @@ function initSignaturePad() {
     }
   }
 
-  canvas.onmousedown = start;
-  canvas.onmousemove = move;
+  // CRITICAL: addEventListener with {passive:false} is required for preventDefault()
+  // to actually block page scroll/zoom on touch. Setting .ontouchstart makes the
+  // listener passive on most modern browsers, which causes the page to scroll under
+  // the finger while drawing — making the ink appear to drift (usually right) from
+  // the touch point. Using addEventListener with passive:false fixes this.
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
   window.addEventListener('mouseup', end);
-  canvas.ontouchstart = start;
-  canvas.ontouchmove = move;
-  canvas.ontouchend = end;
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end, { passive: false });
+  canvas.addEventListener('touchcancel', end, { passive: false });
 
   clearBtn.onclick = () => {
     const rect = canvas.getBoundingClientRect();
@@ -628,6 +648,20 @@ function initSignaturePad() {
     saveState();
     renderCardSig();
   };
+
+  // Re-sync the canvas bitmap to its CSS size whenever the parent layout changes.
+  // Without this, if the canvas is rendered while hidden (or its container is
+  // resized after init), rect.width/height at setup() time can be stale, and
+  // subsequent draws use the wrong coordinate space — producing a visible
+  // horizontal/vertical offset between finger and ink.
+  const ro = new ResizeObserver(() => {
+    if (sigHasInk && state.signature) {
+      // Don't resize after the user has drawn — that would wipe their work.
+      return;
+    }
+    setup();
+  });
+  ro.observe(canvas);
 }
 
 function renderCardSig() {
