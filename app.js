@@ -17,10 +17,18 @@ const CONFIG = {
   SEISMIC_GUILD_ID: '1343751435711414362',
 
   SHARE_TEXT: (name, handle, role, magnitude, seismicId) => {
-    const r = role ? ` · ${role}` : '';
-    const m = magnitude ? ` · Magnitude ${magnitude}` : '';
-    const id = seismicId ? `\n\nVerify: ${CONFIG.VERIFY_BASE}${seismicId}` : '';
-    return `Just opened my Seismic passport. ${name}${handle ? ` (@${handle})` : ''}${r}${m}. No wallet, just identity. #SeismicID` + id;
+    return `🔥 SEISMIC PASSPORT IS HERE
+
+Not just a passport — it's proof of our journey through Privacy Season. 🔒⚡
+
+Massive W to @ArchanistETH for bringing this to life. 🙌
+
+From Genesis → Mainnet Ascension 🚀
+
+Try yours:
+seismic-identity.vercel.app
+
+@NoxxW3 @Xealist @Heathcliff_eth`;
   },
 };
 
