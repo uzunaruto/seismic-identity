@@ -15,6 +15,10 @@ const CONFIG = {
   STORAGE_KEY: 'seismicIdProfile.v3',
   VERIFY_BASE: 'https://seismic-identity.vercel.app/verify/',
   SEISMIC_GUILD_ID: '1343751435711414362',
+  // Default X post URL — pre-fills the "X post URL" field so the share
+  // button auto-quotes the campaign post. Override per-user by editing
+  // the field (state.xPostUrl takes precedence when non-empty).
+  SHARE_QUOTE_URL: 'https://x.com/i/status/2067602398231835102',
 
   SHARE_TEXT: (name, handle, role, magnitude, seismicId) => {
     return `🔥 SEISMIC PASSPORT IS HERE
@@ -537,7 +541,10 @@ function renderXHandleInput() {
 function renderXPostUrlInput() {
   const input = document.getElementById('xPostUrlInput');
   if (!input) return;
-  input.value = state.xPostUrl || '';
+  // Pre-fill from state if set, otherwise fall back to CONFIG default (campaign post).
+  input.value = state.xPostUrl || CONFIG.SHARE_QUOTE_URL || '';
+  // Sync state to whatever's in the input (so initial value gets persisted).
+  if (!state.xPostUrl && input.value) state.xPostUrl = input.value;
   input.oninput = () => {
     const v = input.value.trim();
     // Accept x.com or twitter.com status URLs
@@ -553,11 +560,16 @@ function renderXPostUrlInput() {
   };
 }
 
+function getEffectiveXPostUrl() {
+  const v = (state.xPostUrl || CONFIG.SHARE_QUOTE_URL || '').trim();
+  return /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(v) ? v : '';
+}
+
 function updateShareButton() {
   const btn = document.getElementById('shareX');
   if (!btn) return;
   const label = btn.querySelector('span');
-  if (state.xPostUrl && /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(state.xPostUrl)) {
+  if (getEffectiveXPostUrl()) {
     if (label) label.textContent = 'Quote Post on X';
   } else {
     if (label) label.textContent = 'Share to X';
@@ -1256,10 +1268,8 @@ function shareToX() {
     state.identity.magnitude,
     state.seismicId
   );
-  // If user provided an X post URL, X will auto-quote it when it appears in the tweet
-  const xPostUrl = state.xPostUrl && /^https?:\/\/(x|twitter)\.com\/[A-Za-z0-9_]{1,32}\/status\/\d+/.test(state.xPostUrl)
-    ? state.xPostUrl
-    : '';
+  // If user provided an X post URL (or CONFIG default), X will auto-quote it when it appears in the tweet
+  const xPostUrl = getEffectiveXPostUrl();
   // Append the X post URL to text so it shows up as a card and X auto-converts to quote
   // (no auto-append verify URL — the share text already ends with the canonical CTA URL)
   const fullText = xPostUrl ? text + '\n\n' + xPostUrl : text;
