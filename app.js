@@ -764,6 +764,56 @@ function renderBarcode() {
 }
 
 // ============================================================
+// ECOSYSTEM LOGOS — powered-by grid on right page
+// ============================================================
+// Source of truth: seismic.systems homepage "Powering leading financial services
+// companies" ticker. Updated manually as the ecosystem grows.
+const SEISMIC_ECOSYSTEM = [
+  { name: 'Specie',         url: 'https://www.specie.finance/', logo: 'https://framerusercontent.com/images/jH4GLE4pD8VaAJeqzlBvlnShwwQ.png?width=254&height=64' },
+  { name: 'Promis',         url: 'https://promis.fi/',          logo: 'https://framerusercontent.com/images/yNRklqp0AGmfuBwkr2gYpcieQ.png?width=206&height=64' },
+  { name: 'Brookwell',      url: 'https://www.brookwell.com/',  logo: 'https://framerusercontent.com/images/jXvSeWV4wo0VFBKxnbf1nl2lw.png?width=268&height=64' },
+  { name: 'Via',            url: 'https://www.via.xyz/',        logo: 'https://framerusercontent.com/images/kztSbCmi83eGOrsXWs2bnEqc.png?width=196&height=64' },
+  { name: 'Prism',          url: 'https://getprism.money/',     logo: 'https://framerusercontent.com/images/DS4JntSuJplXQAW0l47zmQDR9Ew.png?width=245&height=80' },
+  { name: 'Port Markets',   url: 'https://portmarkets.com/',    logo: 'https://framerusercontent.com/images/ByHW2aUissfNKYgMVSKES1544.png?width=232&height=64' },
+  { name: 'Vend',           url: 'https://vend.money/',         logo: 'https://framerusercontent.com/images/6dEUV8Z7tT2kLNhhKbDtl2onys.png?width=209&height=64' },
+  { name: 'Avvio',          url: 'https://avvio.xyz/',          logo: 'https://framerusercontent.com/images/ckqUyCaQFQZQqGTNrSl4mWoPoFg.png?width=262&height=72' },
+  { name: 'Meow',           url: 'https://www.meow.com/',       logo: 'https://framerusercontent.com/images/JDQ1vWrjjqZvPZz0TWnD0GtK8zA.png?width=277&height=64' },
+  { name: 'Blend',          url: 'https://blend.money/',        logo: 'https://framerusercontent.com/images/oJ7QVYoyXBbQ4HvAmIeq5U7AGpo.png?width=220&height=64' },
+  { name: 'Shift',          url: 'https://www.shift-apply.com/',logo: 'https://framerusercontent.com/images/H4Yn2rDLeq2wENXWMdowmAbKZs.png?width=298&height=64' },
+  { name: 'Seismic Time Zone', url: 'https://seismic-dice.vercel.app/', logo: 'https://framerusercontent.com/images/RNHqhN9OPcfhYMA27iXglrnSM.svg?width=377&height=109', fullColor: true },
+];
+
+function renderEcosystem() {
+  const grid = document.getElementById('cardEcosystem');
+  if (!grid) return;
+  // Use the right-page ecosystem grid (fall back to legacy .passport__ecosystem if old markup present)
+  grid.innerHTML = '';
+  for (const p of SEISMIC_ECOSYSTEM) {
+    const cell = document.createElement('a');
+    cell.className = 'passport__ecosystem-cell' + (p.fullColor ? ' passport__ecosystem-cell--color' : '');
+    cell.href = p.url;
+    cell.target = '_blank';
+    cell.rel = 'noopener noreferrer';
+    cell.title = p.name;
+    cell.setAttribute('aria-label', p.name);
+    // Set both img + background-image so html-to-image export captures it reliably
+    // (background-image is the export source of truth, img is for sharp on-screen)
+    cell.style.backgroundImage = `url('${escapeHtml(p.logo)}')`;
+    cell.style.backgroundSize = 'contain';
+    cell.style.backgroundRepeat = 'no-repeat';
+    cell.style.backgroundPosition = 'center';
+    // NOTE: don't add crossorigin="anonymous" here. Framer's CDN replies with
+    // Access-Control-Allow-Origin: * only when the request includes an Origin
+    // header. The browser's <img> element doesn't send Origin by default
+    // (so on-screen works), and html-to-image's SVG foreignObject fetch DOES
+    // send Origin (so export works). Verified 2026-06-18 against framer's
+    // CDN responses.
+    cell.innerHTML = `<img src="${escapeHtml(p.logo)}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async">`;
+    grid.appendChild(cell);
+  }
+}
+
+// ============================================================
 // CARD RENDER (PASSPORT)
 // ============================================================
 function renderCard() {
@@ -884,6 +934,9 @@ function renderCard() {
 
   // ----- BARCODE -----
   renderBarcode();
+
+  // ----- ECOSYSTEM LOGOS -----
+  renderEcosystem();
 }
 
 // ============================================================

@@ -21,7 +21,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 
-  <link rel="stylesheet" href="styles.css?v=6.7">
+  <link rel="stylesheet" href="styles.css?v=6.8">
 </head>
 <body>
 
@@ -472,12 +472,21 @@
                       </li>
                     </ol>
 
+                    <div class="passport__ecosystem-section" aria-labelledby="cardEcoLabel">
+                      <div class="passport__ecosystem-header">
+                        <span class="passport__ecosystem-rule" aria-hidden="true"></span>
+                        <h4 class="passport__ecosystem-title" id="cardEcoLabel">POWERING THE ECOSYSTEM</h4>
+                        <span class="passport__ecosystem-rule" aria-hidden="true"></span>
+                      </div>
+                      <div class="passport__ecosystem-grid" id="cardEcosystem" aria-label="Seismic ecosystem partners">
+                        <!-- logos injected by renderEcosystem() in app.js -->
+                      </div>
+                    </div>
+
                     <div class="passport__map" aria-hidden="true"></div>
 
                     <footer class="passport__foot passport__foot--right">
-                      <div class="passport__ecosystem" id="cardEcosystem" aria-label="Ecosystem partners">
-                        <span class="passport__ecosystem-empty">Ecosystem logos will appear here</span>
-                      </div>
+                      <div class="passport__tagline">EVERY STEP MATTERS. EVERY IMPACT COUNTS.</div>
                     </footer>
                   </div>
                 </div>
@@ -571,6 +580,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="app.js?v=6.7" defer></script>
+  <script src="app.js?v=6.8" defer></script>
 </body>
 </html>
