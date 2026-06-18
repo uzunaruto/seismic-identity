@@ -767,20 +767,21 @@ function renderBarcode() {
 // ECOSYSTEM LOGOS — powered-by grid on right page
 // ============================================================
 // Source of truth: seismic.systems homepage "Powering leading financial services
-// companies" ticker. Updated manually as the ecosystem grows.
+// companies" ticker. Logos re-hosted locally under /public/logos/ to avoid
+// framerusercontent.com CORS issues during html-to-image export.
 const SEISMIC_ECOSYSTEM = [
-  { name: 'Specie',         url: 'https://www.specie.finance/', logo: 'https://framerusercontent.com/images/jH4GLE4pD8VaAJeqzlBvlnShwwQ.png?width=254&height=64' },
-  { name: 'Promis',         url: 'https://promis.fi/',          logo: 'https://framerusercontent.com/images/yNRklqp0AGmfuBwkr2gYpcieQ.png?width=206&height=64' },
-  { name: 'Brookwell',      url: 'https://www.brookwell.com/',  logo: 'https://framerusercontent.com/images/jXvSeWV4wo0VFBKxnbf1nl2lw.png?width=268&height=64' },
-  { name: 'Via',            url: 'https://www.via.xyz/',        logo: 'https://framerusercontent.com/images/kztSbCmi83eGOrsXWs2bnEqc.png?width=196&height=64' },
-  { name: 'Prism',          url: 'https://getprism.money/',     logo: 'https://framerusercontent.com/images/DS4JntSuJplXQAW0l47zmQDR9Ew.png?width=245&height=80' },
-  { name: 'Port Markets',   url: 'https://portmarkets.com/',    logo: 'https://framerusercontent.com/images/ByHW2aUissfNKYgMVSKES1544.png?width=232&height=64' },
-  { name: 'Vend',           url: 'https://vend.money/',         logo: 'https://framerusercontent.com/images/6dEUV8Z7tT2kLNhhKbDtl2onys.png?width=209&height=64' },
-  { name: 'Avvio',          url: 'https://avvio.xyz/',          logo: 'https://framerusercontent.com/images/ckqUyCaQFQZQqGTNrSl4mWoPoFg.png?width=262&height=72' },
-  { name: 'Meow',           url: 'https://www.meow.com/',       logo: 'https://framerusercontent.com/images/JDQ1vWrjjqZvPZz0TWnD0GtK8zA.png?width=277&height=64' },
-  { name: 'Blend',          url: 'https://blend.money/',        logo: 'https://framerusercontent.com/images/oJ7QVYoyXBbQ4HvAmIeq5U7AGpo.png?width=220&height=64' },
-  { name: 'Shift',          url: 'https://www.shift-apply.com/',logo: 'https://framerusercontent.com/images/H4Yn2rDLeq2wENXWMdowmAbKZs.png?width=298&height=64' },
-  { name: 'Seismic Time Zone', url: 'https://seismic-dice.vercel.app/', logo: 'https://framerusercontent.com/images/RNHqhN9OPcfhYMA27iXglrnSM.svg?width=377&height=109', fullColor: true },
+  { name: 'Specie',           url: 'https://www.specie.finance/', logo: '/logos/specie.png' },
+  { name: 'Promis',           url: 'https://promis.fi/',          logo: '/logos/promis.png' },
+  { name: 'Brookwell',        url: 'https://www.brookwell.com/',  logo: '/logos/brookwell.png' },
+  { name: 'Via',              url: 'https://www.via.xyz/',        logo: '/logos/via.png' },
+  { name: 'Prism',            url: 'https://getprism.money/',     logo: '/logos/prism.png' },
+  { name: 'Port Markets',     url: 'https://portmarkets.com/',    logo: '/logos/port-markets.png' },
+  { name: 'Vend',             url: 'https://vend.money/',         logo: '/logos/vend.png' },
+  { name: 'Avvio',            url: 'https://avvio.xyz/',          logo: '/logos/avvio.png' },
+  { name: 'Meow',             url: 'https://www.meow.com/',       logo: '/logos/meow.png' },
+  { name: 'Blend',            url: 'https://blend.money/',        logo: '/logos/blend.png' },
+  { name: 'Shift',            url: 'https://www.shift-apply.com/',logo: '/logos/shift.png' },
+  { name: 'Seismic Time Zone',url: 'https://seismic-dice.vercel.app/', logo: '/logos/seismic-time-zone.svg', fullColor: true },
 ];
 
 function renderEcosystem() {
@@ -802,12 +803,11 @@ function renderEcosystem() {
     cell.style.backgroundSize = 'contain';
     cell.style.backgroundRepeat = 'no-repeat';
     cell.style.backgroundPosition = 'center';
-    // NOTE: don't add crossorigin="anonymous" here. Framer's CDN replies with
-    // Access-Control-Allow-Origin: * only when the request includes an Origin
-    // header. The browser's <img> element doesn't send Origin by default
-    // (so on-screen works), and html-to-image's SVG foreignObject fetch DOES
-    // send Origin (so export works). Verified 2026-06-18 against framer's
-    // CDN responses.
+    // Local /logos/* paths are same-origin so no CORS issue. The browser
+    // will happily rasterize them in the html-to-image SVG foreignObject
+    // export. Both <img> and background-image are set so live preview
+    // stays sharp AND html-to-image's background-image fallback catches
+    // any race where the <img> async load hasn't completed yet.
     cell.innerHTML = `<img src="${escapeHtml(p.logo)}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async">`;
     grid.appendChild(cell);
   }
