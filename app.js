@@ -784,6 +784,49 @@ const SEISMIC_ECOSYSTEM = [
   { name: 'Seismic Time Zone',url: 'https://seismic-dice.vercel.app/', logo: '/logos/seismic-time-zone.svg', fullColor: true },
 ];
 
+// Cache of local logo URL → data URL (base64). Populated on page load so
+// renderEcosystem() and html-to-image export both see the image without
+// racing the network fetch. Same-origin /logos/* paths are fetched once,
+// converted via FileReader.readAsDataURL, and cached here.
+const _logoDataUrlCache = new Map();
+
+async function _fetchLogoAsDataUrl(url) {
+  if (_logoDataUrlCache.has(url)) return _logoDataUrlCache.get(url);
+  try {
+    const res = await fetch(url, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(blob);
+    });
+    _logoDataUrlCache.set(url, dataUrl);
+    return dataUrl;
+  } catch (e) {
+    console.warn('[_fetchLogoAsDataUrl] failed for', url, e);
+    return null;
+  }
+}
+
+// Pre-warm all ecosystem logos so they're inlined before render + export.
+// Returns a promise that resolves once all logos are data-URLed. If any
+// logo fetch fails, we still resolve — renderEcosystem() falls back to
+// the raw path. After the cache is warm, callers should re-invoke
+// renderEcosystem() so <img> and background-image get the data URLs.
+async function preloadEcosystemLogos() {
+  const tasks = SEISMIC_ECOSYSTEM.map(p => _fetchLogoAsDataUrl(p.logo));
+  const results = await Promise.all(tasks);
+  // Re-render the grid now that data URLs are available, so the <img>
+  // tags show fully-loaded content (especially important for the
+  // html-to-image export rasterization that runs later).
+  if (results.every(Boolean)) {
+    renderEcosystem();
+  }
+  // Returns void; the side effect of re-rendering is what matters.
+}
+
 function renderEcosystem() {
   const grid = document.getElementById('cardEcosystem');
   if (!grid) return;
@@ -797,24 +840,21 @@ function renderEcosystem() {
     cell.rel = 'noopener noreferrer';
     cell.title = p.name;
     cell.setAttribute('aria-label', p.name);
-    // Set both img + background-image so html-to-image export captures it reliably
-    // (background-image is the export source of truth, img is for sharp on-screen)
-    cell.style.backgroundImage = `url('${escapeHtml(p.logo)}')`;
+    // Use the pre-fetched data URL for BOTH the <img> tag and the CSS
+    // background-image. Same-origin /logos/* paths are tiny (1-3 KB each)
+    // so the data URL overhead is negligible, but the win is that the
+    // html-to-image SVG <foreignObject> export doesn't have to make any
+    // network requests during rasterization — it sees fully-loaded images
+    // in both the live DOM and the cloned export document.
+    const dataUrl = _logoDataUrlCache.get(p.logo) || p.logo;
+    cell.style.backgroundImage = `url('${escapeHtml(dataUrl)}')`;
     cell.style.backgroundSize = 'contain';
     cell.style.backgroundRepeat = 'no-repeat';
     cell.style.backgroundPosition = 'center';
-    // Local /logos/* paths are same-origin so no CORS issue. The browser
-    // will happily rasterize them in the html-to-image SVG foreignObject
-    // export. Both <img> and background-image are set so live preview
-    // stays sharp AND html-to-image's background-image fallback catches
-    // any race where the <img> async load hasn't completed yet.
-    // NOTE: no loading="lazy" here. html-to-image's SVG <foreignObject>
-    // export rasterizes the cloned DOM without waiting for lazy images,
-    // so any logo with loading="lazy" appears BLANK in the PNG export.
-    // Same-origin /logos/* paths load fast enough that eager loading is fine.
-    // The browser's native lazy heuristic would defer them until they
-    // scroll into view, which they never do in the cloned export document.
-    cell.innerHTML = `<img src="${escapeHtml(p.logo)}" alt="${escapeHtml(p.name)}" decoding="async">`;
+    // <img> on top keeps the on-screen preview sharp and adds drag-to-open
+    // semantics. The export rasterizer reads background-image (PFP pattern
+    // from memory v5.3: dual-render so live stays sharp + export has fallback).
+    cell.innerHTML = `<img src="${escapeHtml(dataUrl)}" alt="${escapeHtml(p.name)}" decoding="async">`;
     grid.appendChild(cell);
   }
 }
@@ -1247,9 +1287,10 @@ function toast(msg, kind) {
 // BOOT
 // ============================================================
 function boot() {
-  // Pre-load brand logo as data URL so html2canvas can capture it
-  // without depending on cross-origin/cached-load state.
+  // Pre-load brand logo + ecosystem logos as data URLs so html-to-image can
+  // capture them without depending on cross-origin/cached-load state.
   preloadBrandLogo();
+  preloadEcosystemLogos();
   initConnectView();
   initEditIdentity();
   initReset();
